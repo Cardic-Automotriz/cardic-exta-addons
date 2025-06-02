@@ -1,0 +1,49 @@
+<odoo>
+  <data>
+    <record model="ir.ui.view" id="hr_cardic_solicitud_form">
+      <field name="name">solicitud vacante form</field>
+      <field name="model">hr_cardic.solicitud</field>
+      <field name="arch" type="xml">
+        <form string="Solicitud de Vacante">
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="description"/>
+              <field name="jefe_solicitante"/>
+              <field name="nivel_estudios"/>
+              <field name="horario"/>
+              <field name="salario"/>
+              <field name="fecha_solicitud"/>
+              <field name="estado"/>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="hr_cardic_solicitud_list">
+      <field name="name">solicitud vacante list</field>
+      <field name="model">hr_cardic.solicitud</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="jefe_solicitante"/>
+          <field name="nivel_estudios"/>
+          <field name="horario"/>
+          <field name="salario"/>
+          <field name="estado"/>
+        </tree>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="hr_cardic_solicitud_action_window">
+      <field name="name">Solicitudes de Vacante</field>
+      <field name="res_model">hr_cardic.solicitud</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="hr_cardic_menu_root" name="RRHH Cardic" sequence="20"/>
+    <menuitem id="hr_cardic_menu_solicitudes" name="Solicitudes" parent="hr.menu_hr_root"/>
+    <menuitem id="hr_cardic_menu_solicitudes_list" name="Lista de Solicitudes" parent="hr_cardic_menu_solicitudes" action="hr_cardic_solicitud_action_window"/>
+  </data>
+</odoo> 
