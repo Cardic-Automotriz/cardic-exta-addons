@@ -5,6 +5,10 @@
       <field name="model">hr_cardic.solicitud</field>
       <field name="arch" type="xml">
         <form string="Solicitud de Vacante">
+          <header>
+            <button name="action_aprobar_y_publicar" type="object" string="Aprobar y Publicar"
+                invisible="not show_aprobar_y_publicar" class="btn-primary"/>
+          </header>
           <sheet>
             <group>
               <field name="name"/>
@@ -16,6 +20,7 @@
               <field name="fecha_solicitud"/>
               <field name="estado"/>
             </group>
+            <field name="show_aprobar_y_publicar" invisible="1"/>
           </sheet>
         </form>
       </field>
@@ -42,8 +47,12 @@
       <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="hr_cardic_menu_root" name="RRHH Cardic" sequence="20"/>
-    <menuitem id="hr_cardic_menu_solicitudes" name="Solicitudes" parent="hr.menu_hr_root"/>
+    <menuitem id="rhh_menu_root" name="RRHH" sequence="10"/>
+    <menuitem id="hr_cardic_menu_solicitudes" name="Solicitudes" parent="rhh_menu_root" sequence="10"/>
     <menuitem id="hr_cardic_menu_solicitudes_list" name="Lista de Solicitudes" parent="hr_cardic_menu_solicitudes" action="hr_cardic_solicitud_action_window"/>
+    <menuitem id="rhh_menu_reclutamiento" name="Reclutamiento" parent="rhh_menu_root" action="hr_recruitment.crm_case_categ0_act_job" sequence="20"/>
+    <menuitem id="rhh_menu_contratacion" name="Contratación" parent="rhh_menu_root" action="hr_contract.action_hr_contract" sequence="30"/>
+    <menuitem id="rhh_menu_asistencias" name="Asistencias" parent="rhh_menu_root" action="hr_attendance.hr_attendance_action" sequence="40"/>
+    <menuitem id="rhh_menu_timeoff" name="Faltas y Vacaciones" parent="rhh_menu_root" action="hr_holidays.hr_leave_action_action_approve_department" sequence="50"/>
   </data>
-</odoo> 
+</odoo>

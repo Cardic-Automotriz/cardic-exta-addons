@@ -6,7 +6,7 @@
     'website': 'https://www.cardic.com',
     'category': 'Human Resources',
     'version': '1.0',
-    'depends': ['base', 'hr'],
+    'depends': ['base', 'hr', 'hr_recruitment', 'hr_contract', 'hr_attendance', 'hr_holidays'],
     'data': [
         'security/ir.model.access.csv',
         'views/views.xml',
