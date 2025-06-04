@@ -71,4 +71,50 @@ class RhhDashboard(models.TransientModel):
         self.vacantes_count = self.env['hr.job'].search_count([])
         self.empleados_count = self.env['hr.employee'].search_count([])
         self.asistencias_count = self.env['hr.attendance'].search_count([])
-        self.vacaciones_count = self.env['hr.leave'].search_count([]) 
+        self.vacaciones_count = self.env['hr.leave'].search_count([])
+
+class CajaChica(models.Model):
+    _name = 'hr_cardic.caja_chica'
+    _description = 'Gestión de Caja Chica'
+
+    name = fields.Selection([
+        ('puebla', 'Puebla'),
+        ('queretaro', 'Querétaro'),
+        ('cuernavaca', 'Cuernavaca'),
+        ('toluca', 'Toluca'),
+        ('pachuca', 'Pachuca'),
+    ], string="Nombre de la Ruta/Caja Chica", required=True)
+    fecha_inicio = fields.Date(string="Fecha de Inicio", required=True)
+    fecha_fin = fields.Date(string="Fecha de Fin", required=True)
+    saldo_inicial = fields.Float(string="Saldo Inicial", required=True)
+    total = fields.Float(string="Total", compute="_compute_total", store=True)
+    estado = fields.Selection([
+        ('borrador', 'Borrador'),
+        ('aprobado', 'Aprobado'),
+    ], string="Estado", default='borrador')
+    gastos_ids = fields.One2many('hr_cardic.gasto', 'caja_chica_id', string="Gastos")
+
+    @api.depends('gastos_ids.subtotal', 'saldo_inicial')
+    def _compute_total(self):
+        for record in self:
+            subtotal = sum(gasto.subtotal for gasto in record.gastos_ids)
+            record.total = record.saldo_inicial - subtotal
+
+    def action_aprobar(self):
+        for record in self:
+            record.estado = 'aprobado'
+
+class Gasto(models.Model):
+    _name = 'hr_cardic.gasto'
+    _description = 'Gestión de Gastos'
+
+    caja_chica_id = fields.Many2one('hr_cardic.caja_chica', string="Caja Chica", required=True)
+    fecha_gasto = fields.Date(string="Fecha del Gasto", required=True)
+    concepto = fields.Char(string="Concepto", required=True)
+    importe = fields.Float(string="Importe", required=True)
+    subtotal = fields.Float(string="Subtotal", compute="_compute_subtotal", store=True)
+
+    @api.depends('importe')
+    def _compute_subtotal(self):
+        for record in self:
+            record.subtotal = record.importe
