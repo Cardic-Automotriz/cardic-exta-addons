@@ -53,4 +53,22 @@ class SolicitudVacante(models.Model):
                 # Puedes mapear más campos aquí si lo deseas
             }
             Job.create(job_vals)
-            solicitud.estado = 'publicada' 
+            solicitud.estado = 'publicada'
+
+class RhhDashboard(models.TransientModel):
+    _name = 'hr_cardic.rhh_dashboard'
+    _description = 'Panel RRHH'
+
+    solicitudes_count = fields.Integer(string="Solicitudes de Vacante", compute="_compute_counts")
+    vacantes_count = fields.Integer(string="Vacantes", compute="_compute_counts")
+    empleados_count = fields.Integer(string="Empleados", compute="_compute_counts")
+    asistencias_count = fields.Integer(string="Asistencias", compute="_compute_counts")
+    vacaciones_count = fields.Integer(string="Faltas y Vacaciones", compute="_compute_counts")
+
+    @api.depends()
+    def _compute_counts(self):
+        self.solicitudes_count = self.env['hr_cardic.solicitud'].search_count([])
+        self.vacantes_count = self.env['hr.job'].search_count([])
+        self.empleados_count = self.env['hr.employee'].search_count([])
+        self.asistencias_count = self.env['hr.attendance'].search_count([])
+        self.vacaciones_count = self.env['hr.leave'].search_count([]) 

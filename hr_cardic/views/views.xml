@@ -54,5 +54,76 @@
     <menuitem id="rhh_menu_contratacion" name="Contratación" parent="rhh_menu_root" action="hr_contract.action_hr_contract" sequence="30"/>
     <menuitem id="rhh_menu_asistencias" name="Asistencias" parent="rhh_menu_root" action="hr_attendance.hr_attendance_action" sequence="40"/>
     <menuitem id="rhh_menu_timeoff" name="Faltas y Vacaciones" parent="rhh_menu_root" action="hr_holidays.hr_leave_action_action_approve_department" sequence="50"/>
+
+    <!-- Ocultar menú nativo de Employees -->
+    <record id="hr.menu_hr_root" model="ir.ui.menu">
+      <field name="active" eval="False"/>
+    </record>
+
+    <!-- Dashboard RRHH -->
+    <record id="view_rhh_dashboard" model="ir.ui.view">
+      <field name="name">rhh.dashboard.kanban</field>
+      <field name="model">hr_cardic.rhh_dashboard</field>
+      <field name="arch" type="xml">
+        <kanban>
+          <templates>
+            <t t-name="kanban-box">
+              <div class="o_kanban_dashboard">
+                <div class="o_kanban_card">
+                  <a type="action" name="hr_cardic_solicitud_action_window">
+                    <div class="o_kanban_card_content">
+                      <span class="o_kanban_card_title">Solicitudes de Vacante</span>
+                      <span class="o_kanban_card_count"><t t-esc="record.solicitudes_count.value"/></span>
+                    </div>
+                  </a>
+                </div>
+                <div class="o_kanban_card">
+                  <a type="action" name="hr_recruitment.crm_case_categ0_act_job">
+                    <div class="o_kanban_card_content">
+                      <span class="o_kanban_card_title">Vacantes</span>
+                      <span class="o_kanban_card_count"><t t-esc="record.vacantes_count.value"/></span>
+                    </div>
+                  </a>
+                </div>
+                <div class="o_kanban_card">
+                  <a type="action" name="hr_holidays.hr_leave_action_action_approve_department">
+                    <div class="o_kanban_card_content">
+                      <span class="o_kanban_card_title">Faltas y Vacaciones</span>
+                      <span class="o_kanban_card_count"><t t-esc="record.vacaciones_count.value"/></span>
+                    </div>
+                  </a>
+                </div>
+                <div class="o_kanban_card">
+                  <a type="action" name="hr_attendance.hr_attendance_action">
+                    <div class="o_kanban_card_content">
+                      <span class="o_kanban_card_title">Asistencias</span>
+                      <span class="o_kanban_card_count"><t t-esc="record.asistencias_count.value"/></span>
+                    </div>
+                  </a>
+                </div>
+                <div class="o_kanban_card">
+                  <a type="action" name="hr.open_view_employee_list_my">
+                    <div class="o_kanban_card_content">
+                      <span class="o_kanban_card_title">Empleados</span>
+                      <span class="o_kanban_card_count"><t t-esc="record.empleados_count.value"/></span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </t>
+          </templates>
+        </kanban>
+      </field>
+    </record>
+
+    <record id="action_rhh_dashboard" model="ir.actions.act_window">
+      <field name="name">Panel RRHH</field>
+      <field name="res_model">hr_cardic.rhh_dashboard</field>
+      <field name="view_mode">kanban</field>
+      <field name="view_id" ref="view_rhh_dashboard"/>
+      <field name="target">current</field>
+    </record>
+
+    <menuitem id="rhh_menu_dashboard" name="Panel RRHH" parent="rhh_menu_root" action="action_rhh_dashboard" sequence="1"/>
   </data>
 </odoo>
