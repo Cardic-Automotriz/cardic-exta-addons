@@ -54,6 +54,7 @@
     <menuitem id="rhh_menu_contratacion" name="Contratación" parent="rhh_menu_root" action="hr_contract.action_hr_contract" sequence="30"/>
     <menuitem id="rhh_menu_asistencias" name="Asistencias" parent="rhh_menu_root" action="hr_attendance.hr_attendance_action" sequence="40"/>
     <menuitem id="rhh_menu_timeoff" name="Faltas y Vacaciones" parent="rhh_menu_root" action="hr_holidays.hr_leave_action_action_approve_department" sequence="50"/>
+    <menuitem id="rhh_menu_empleados" name="Empleados" parent="rhh_menu_root" action="hr.open_view_employee_list_my" sequence="5"/>
 
     <!-- Ocultar menú nativo de Employees -->
     <record id="hr.menu_hr_root" model="ir.ui.menu">
