@@ -90,6 +90,7 @@ class CajaChica(models.Model):
     total = fields.Float(string="Total", compute="_compute_total", store=True)
     estado = fields.Selection([
         ('borrador', 'Borrador'),
+        ('abierto', 'Abierto'),
         ('aprobado', 'Aprobado'),
     ], string="Estado", default='borrador')
     gastos_ids = fields.One2many('hr_cardic.gasto', 'caja_chica_id', string="Gastos")
@@ -99,6 +100,10 @@ class CajaChica(models.Model):
         for record in self:
             subtotal = sum(gasto.subtotal for gasto in record.gastos_ids)
             record.total = record.saldo_inicial - subtotal
+
+    def action_abierto(self):
+        for record in self:
+            record.estado = 'abierto'
 
     def action_aprobar(self):
         for record in self:
