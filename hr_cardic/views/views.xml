@@ -131,32 +131,32 @@
       <field name="model">hr_cardic.caja_chica</field>
       <field name="arch" type="xml">
           <form string="Caja Chica">
-              <sheet>
-                  <group>
-                      <field name="name" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                      <field name="fecha_inicio" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                      <field name="fecha_fin" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                      <field name="saldo_inicial" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                      <field name="estado" readonly="1"/>
-                      <field name="total" readonly="1"/>
-                  </group>
-                  <notebook>
-                      <page string="Gastos">
-                          <field name="gastos_ids">
-                              <tree editable="bottom" attrs="{'readonly': [('estado', '=', 'aprobado')]}">
-                                  <field name="fecha_gasto"/>
-                                  <field name="concepto"/>
-                                  <field name="importe"/>
-                                  <field name="subtotal" readonly="1"/>
-                              </tree>
-                          </field>
-                      </page>
-                  </notebook>
-              </sheet>
-              <footer>
-                  <button name="action_abierto" type="object" string="Abrir" class="btn-primary" attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
-                  <button name="action_aprobar" type="object" string="Aprobar" class="btn-success" attrs="{'invisible': [('estado', '!=', 'abierto')]}"/>
-              </footer>
+            <header>
+                <field name="estado" widget="statusbar" options="{'clickable': True}"/>
+                <button name="action_abierto" type="object" string="Abrir" class="btn-primary" attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
+                <button name="action_aprobar" type="object" string="Aprobar" class="btn-success" attrs="{'invisible': [('estado', '!=', 'abierto')]}"/>
+            </header>
+            <sheet>
+                <group>
+                    <field name="name" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
+                    <field name="fecha_inicio" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
+                    <field name="fecha_fin" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
+                    <field name="saldo_inicial" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
+                    <field name="total" readonly="1"/>
+                </group>
+                <notebook>
+                    <page string="Gastos">
+                        <field name="gastos_ids">
+                            <tree editable="bottom" attrs="{'readonly': [('estado', '=', 'aprobado')]}">
+                                <field name="fecha_gasto"/>
+                                <field name="concepto"/>
+                                <field name="importe"/>
+                                <field name="subtotal" readonly="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </sheet>
           </form>
       </field>
     </record>

@@ -92,7 +92,7 @@ class CajaChica(models.Model):
         ('borrador', 'Borrador'),
         ('abierto', 'Abierto'),
         ('aprobado', 'Aprobado'),
-    ], string="Estado", default='borrador')
+    ], string="Estado", default='borrador', tracking=True)
     gastos_ids = fields.One2many('hr_cardic.gasto', 'caja_chica_id', string="Gastos")
 
     @api.depends('gastos_ids.subtotal', 'saldo_inicial')
