@@ -131,7 +131,7 @@
       <field name="name">Caja Chica Form</field>
       <field name="model">hr_cardic.caja_chica</field>
       <field name="arch" type="xml">
-          <form string="Caja Chica">
+          <form string="Caja Chica" attrs="{'readonly': [('estado','=','aprobado')]}">
             <header>
                 <field name="estado" widget="statusbar" options="{'clickable': True}"/>
                 <button name="action_abierto" type="object" string="Abrir" class="btn-primary" attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
