@@ -90,16 +90,26 @@ class CajaChica(models.Model):
     _name = 'hr_cardic.caja_chica'
     _description = 'Gestión de Caja Chica'
 
-    name = fields.Selection([
-        ('puebla', 'Puebla'),
-        ('queretaro', 'Querétaro'),
-        ('cuernavaca', 'Cuernavaca'),
-        ('toluca', 'Toluca'),
-        ('pachuca', 'Pachuca'),
-    ], string="Nombre de la Ruta/Caja Chica", required=True)
-    fecha_inicio = fields.Date(string="Fecha de Inicio", required=True)
-    fecha_fin = fields.Date(string="Fecha de Fin", required=True)
-    saldo_inicial = fields.Float(string="Saldo Inicial", required=True)
+    name = fields.Char(
+        string="Nombre de la Caja Chica",
+        required=True,
+        readonly=lambda self: self.estado == 'aprobado'
+    )
+    fecha_inicio = fields.Date(
+        string="Fecha de Inicio",
+        required=True,
+        readonly=lambda self: self.estado == 'aprobado'
+    )
+    fecha_fin = fields.Date(
+        string="Fecha de Fin",
+        required=True,
+        readonly=lambda self: self.estado == 'aprobado'
+    )
+    saldo_inicial = fields.Float(
+        string="Saldo Inicial",
+        required=True,
+        readonly=lambda self: self.estado == 'aprobado'
+    )
     total = fields.Float(string="Total", compute="_compute_total", store=True)
     estado = fields.Selection([
         ('borrador', 'Borrador'),

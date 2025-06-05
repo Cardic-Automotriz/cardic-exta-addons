@@ -134,21 +134,21 @@
           <form string="Caja Chica">
             <header>
                 <field name="estado" widget="statusbar" options="{'clickable': True}"/>
-                <button name="action_abierto" type="object" string="Abrir" class="btn-primary" attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
-                <button name="action_aprobar" type="object" string="Aprobar" class="btn-success" attrs="{'invisible': [('estado', '!=', 'abierto')]}"/>
+                <button name="action_abierto" type="object" string="Abrir" class="btn-primary"/>
+                <button name="action_aprobar" type="object" string="Aprobar" class="btn-success"/>
             </header>
             <sheet>
                 <group>
-                    <field name="name" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                    <field name="fecha_inicio" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                    <field name="fecha_fin" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
-                    <field name="saldo_inicial" attrs="{'readonly': [('estado', '=', 'aprobado')]}"/>
+                    <field name="name"/>
+                    <field name="fecha_inicio"/>
+                    <field name="fecha_fin"/>
+                    <field name="saldo_inicial"/>
                     <field name="total" readonly="1"/>
                 </group>
                 <notebook>
                     <page string="Gastos">
                         <field name="gastos_ids">
-                            <tree editable="bottom" attrs="{'readonly': [('estado', '=', 'aprobado')]}">
+                            <tree editable="bottom">
                                 <field name="fecha_gasto"/>
                                 <field name="concepto"/>
                                 <field name="importe"/>
@@ -179,5 +179,19 @@
           </form>
       </field>
     </record>
+
+    <record id="action_caja_chica" model="ir.actions.act_window">
+        <field name="name">Caja Chica</field>
+        <field name="res_model">hr_cardic.caja_chica</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="rhh_menu_caja_chica" name="Caja Chica" parent="rhh_menu_root" action="action_caja_chica" sequence="60"/>
+
+    <record id="action_ruta" model="ir.actions.act_window">
+        <field name="name">Rutas</field>
+        <field name="res_model">hr_cardic.ruta</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="rhh_menu_rutas" name="Rutas" parent="rhh_menu_root" action="action_ruta" sequence="70"/>
   </data>
 </odoo>
