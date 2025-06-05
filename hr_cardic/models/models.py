@@ -55,6 +55,15 @@ class SolicitudVacante(models.Model):
             Job.create(job_vals)
             solicitud.estado = 'publicada'
 
+
+class Ruta(models.Model):
+    _name = 'hr_cardic.ruta'
+    _description = 'Ruta'
+
+    name = fields.Char(string="Nombre de la Ruta", required=True)
+    descripcion = fields.Text(string="Descripción")
+
+
 class RhhDashboard(models.TransientModel):
     _name = 'hr_cardic.rhh_dashboard'
     _description = 'Panel RRHH'
@@ -64,6 +73,8 @@ class RhhDashboard(models.TransientModel):
     empleados_count = fields.Integer(string="Empleados", compute="_compute_counts")
     asistencias_count = fields.Integer(string="Asistencias", compute="_compute_counts")
     vacaciones_count = fields.Integer(string="Faltas y Vacaciones", compute="_compute_counts")
+    cajas_count = fields.Integer(string="Cajas", compute="_compute_counts")
+    rutas_count = fields.Integer(string="Rutas", compute="_compute_counts")
 
     @api.depends()
     def _compute_counts(self):
@@ -72,6 +83,8 @@ class RhhDashboard(models.TransientModel):
         self.empleados_count = self.env['hr.employee'].search_count([])
         self.asistencias_count = self.env['hr.attendance'].search_count([])
         self.vacaciones_count = self.env['hr.leave'].search_count([])
+        self.cajas_count = self.env['hr_cardic.caja'].search_count([])
+        self.rutas_count = self.env['hr_cardic.ruta'].search_count([])
 
 class CajaChica(models.Model):
     _name = 'hr_cardic.caja_chica'
