@@ -1,7 +1,7 @@
 {
     'name': 'Solicitud de Vacante',
-    'summary': 'Gestion de solicitudes de vacantes RRHH Cardic',
-    'description': 'Modulo para gestionar solicitudes de vacantes y su flujo en RRHH.',
+    'summary': 'Gestión de solicitudes de vacantes RRHH Cardic',
+    'description': 'Módulo para gestionar solicitudes de vacantes y su flujo en RRHH.',
     'author': 'Cardic Automotriz',
     'website': 'https://www.cardic.com',
     'category': 'Human Resources',
