@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:15
+    container_name: odoo17_db
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - odoo-net
+
+  odoo:
+    image: odoo:17
+    container_name: odoo17_app
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+    volumes:
+      - ./custom-addons:/mnt/extra-addons
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+    restart: unless-stopped
+    networks:
+      - odoo-net
+volumes:
+  odoo-db-data:
+
+networks:
+  odoo-net:
+    driver: bridge
