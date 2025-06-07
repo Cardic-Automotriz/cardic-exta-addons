@@ -132,11 +132,7 @@
       <field name="model">hr_cardic.caja_chica</field>
       <field name="arch" type="xml">
           <form string="Caja Chica">
-            <sheet>
-                <group>
-                    <field name="estado"/>
-                </group>
-            </sheet>
+            <field name="estado"/>
             <header>
                 <field name="estado" widget="statusbar" options="{'clickable': True}"/>
                 <button name="action_abierto" type="object" string="Abrir" class="btn-primary" invisible="estado != 'borrador'"/>
