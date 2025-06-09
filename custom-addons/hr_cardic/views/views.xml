@@ -6,8 +6,7 @@
       <field name="arch" type="xml">
         <form string="Solicitud de Vacante">
           <header>
-            <button name="action_aprobar_y_publicar" type="object" string="Aprobar y Publicar"
-                invisible="not show_aprobar_y_publicar" class="btn-primary"/>
+            <button name="action_aprobar_y_publicar" type="object" string="Aprobar y Publicar" invisible="show_aprobar_y_publicar == False" class="btn-primary"/>
           </header>
           <sheet>
             <group>
@@ -122,38 +121,66 @@
 
     <menuitem id="rhh_menu_dashboard" name="Panel RRHH" parent="rhh_menu_root" action="action_rhh_dashboard" sequence="1"/>
 
+    <!-- Caja Chica -->
+    <record id="view_caja_chica_tree" model="ir.ui.view">
+      <field name="name">Caja Chica Tree</field>
+      <field name="model">hr_cardic.caja_chica</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="fecha_inicio"/>
+          <field name="fecha_fin"/>
+          <field name="total"/>
+          <field name="estado"/>
+        </tree>
+      </field>
+    </record>
+
     <record id="view_caja_chica_form" model="ir.ui.view">
       <field name="name">Caja Chica Form</field>
       <field name="model">hr_cardic.caja_chica</field>
       <field name="arch" type="xml">
-          <form string="Caja Chica">
-            <header>
-                <field name="estado" widget="statusbar" options="{'clickable': True}"/>
-                <button name="action_abierto" type="object" string="Abrir" class="btn-primary"/>
-                <button name="action_aprobar" type="object" string="Aprobar" class="btn-success"/>
-            </header>
-            <sheet>
-                <group>
-                    <field name="name"/>
-                    <field name="fecha_inicio"/>
-                    <field name="fecha_fin"/>
-                    <field name="saldo_inicial"/>
-                    <field name="total" readonly="1"/>
-                </group>
-                <notebook>
-                    <page string="Gastos">
-                        <field name="gastos_ids">
-                            <tree editable="bottom">
-                                <field name="fecha_gasto"/>
-                                <field name="concepto"/>
-                                <field name="importe"/>
-                                <field name="subtotal" readonly="1"/>
-                            </tree>
-                        </field>
-                    </page>
-                </notebook>
-            </sheet>
-          </form>
+        <form string="Caja Chica">
+          <header>
+            <field name="estado" widget="statusbar" options="{'clickable': True}"/>
+            <button name="action_abierto" type="object" string="Abrir" class="btn-primary" invisible="estado != 'borrador'"/>
+            <button name="action_aprobar" type="object" string="Aprobar" class="btn-success" invisible="estado != 'abierto'"/>
+          </header>
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="fecha_inicio"/>
+              <field name="fecha_fin"/>
+              <field name="saldo_inicial"/>
+              <field name="total" readonly="1"/>
+            </group>
+            <notebook>
+              <page string="Gastos">
+                <field name="gastos_ids">
+                  <tree editable="bottom">
+                    <field name="fecha_gasto"/>
+                    <field name="concepto"/>
+                    <field name="importe"/>
+                    <field name="subtotal" readonly="1"/>
+                  </tree>
+                </field>
+              </page>
+            </notebook>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <record id="view_gasto_tree" model="ir.ui.view">
+      <field name="name">Gasto Tree</field>
+      <field name="model">hr_cardic.gasto</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="fecha_gasto"/>
+          <field name="concepto"/>
+          <field name="importe"/>
+          <field name="subtotal" readonly="1"/>
+        </tree>
       </field>
     </record>
 
@@ -161,17 +188,17 @@
       <field name="name">Gasto Form</field>
       <field name="model">hr_cardic.gasto</field>
       <field name="arch" type="xml">
-          <form string="Gasto">
-              <sheet>
-                  <group>
-                      <field name="caja_chica_id"/>
-                      <field name="fecha_gasto"/>
-                      <field name="concepto"/>
-                      <field name="importe"/>
-                      <field name="subtotal" readonly="1"/>
-                  </group>
-              </sheet>
-          </form>
+        <form string="Gasto">
+          <sheet>
+            <group>
+              <field name="caja_chica_id"/>
+              <field name="fecha_gasto"/>
+              <field name="concepto"/>
+              <field name="importe"/>
+              <field name="subtotal" readonly="1"/>
+            </group>
+          </sheet>
+        </form>
       </field>
     </record>
 
@@ -218,7 +245,6 @@
                             <field name="fecha"/>
                             <field name="zona"/>
                             <field name="task_id"/>
-                            <field name="caja_chica_id" readonly="1"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id" groups="base.group_multi_currency"/>
                         </group>
@@ -312,5 +338,15 @@
               parent="menu_hr_routes"
               action="action_caja_chica"
               sequence="80"/>
+
+    <report
+        id="action_report_ruta"
+        model="hr_cardic.ruta"
+        string="Reporte de Ruta"
+        report_type="qweb-pdf"
+        name="hr_cardic.report_ruta_document"
+        file="hr_cardic.report_ruta_document"
+        print_report_name="'Reporte de Ruta - %s' % (object.name)"
+    />
   </data>
 </odoo>

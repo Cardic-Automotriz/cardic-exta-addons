@@ -244,3 +244,15 @@ class Gasto(models.Model):
     def _compute_subtotal(self):
         for record in self:
             record.subtotal = record.importe
+
+class HrExpense(models.Model):
+    _inherit = 'hr.expense'
+
+    caja_chica_id = fields.Many2one('hr_cardic.caja_chica', string='Caja Chica')
+    ruta_id = fields.Many2one('hr_cardic.ruta', string='Ruta')
+
+    # Opcional: sincronizar ruta automáticamente si se selecciona una caja chica
+    @api.onchange('caja_chica_id')
+    def _onchange_caja_chica_id(self):
+        if self.caja_chica_id and self.caja_chica_id.ruta_ids:
+            self.ruta_id = self.caja_chica_id.ruta_ids[0]
