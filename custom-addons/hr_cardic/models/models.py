@@ -66,7 +66,9 @@ class Ruta(models.Model):
     zona = fields.Selection([
         ('puebla', 'Puebla'),
         ('cuernavaca', 'Cuernavaca'),
-        ('queretaro', 'Querétaro')
+        ('queretaro', 'Querétaro'),
+        ('toluca', 'Toluca'),
+        ('pachuca', 'Pachuca'),
     ], string="Zona", required=True, tracking=True)
     
     task_id = fields.Many2one('project.task', string="Tarea Relacionada")
@@ -138,11 +140,25 @@ class Ruta(models.Model):
         caja_vals = {
             'name': ruta.zona,
             'fecha_inicio': ruta.fecha,
-            'fecha_fin': ruta.fecha,  # Puedes ajustar la lógica de fecha fin
+            'fecha_fin': ruta.fecha,
             'saldo_inicial': ruta.saldo_inicial,
+            'estado': 'borrador',
         }
         caja = self.env['hr_cardic.caja_chica'].create(caja_vals)
-        ruta.caja_chica_id = caja.id
+        ruta.write({'caja_chica_id': caja.id})
+
+        # Buscar el usuario admin (puedes cambiar el login si quieres otro usuario)
+        admin_user = self.env.ref('base.user_admin')
+        if admin_user.partner_id:
+            # Agregar admin como seguidor si no lo es
+            ruta.message_subscribe(partner_ids=[admin_user.partner_id.id])
+            # Mandar mensaje al chatter y notificar
+            ruta.message_post(
+                body=f'Se ha creado la ruta <b>{ruta.name}</b> y la caja chica asociada.',
+                subject='Nueva Ruta y Caja Chica',
+                partner_ids=[admin_user.partner_id.id],
+                message_type='notification'
+            )
         return ruta
 
 class GastoRuta(models.Model):
@@ -183,6 +199,7 @@ class RhhDashboard(models.TransientModel):
     vacaciones_count = fields.Integer(string="Faltas y Vacaciones", compute="_compute_counts")
     cajas_count = fields.Integer(string="Cajas", compute="_compute_counts")
     rutas_count = fields.Integer(string="Rutas", compute="_compute_counts")
+    encuestas_count = fields.Integer(string="Evaluaciones/Entrevistas", compute="_compute_counts")
 
     @api.depends()
     def _compute_counts(self):
@@ -193,10 +210,12 @@ class RhhDashboard(models.TransientModel):
         self.vacaciones_count = self.env['hr.leave'].search_count([])
         self.cajas_count = self.env['hr_cardic.caja_chica'].search_count([])
         self.rutas_count = self.env['hr_cardic.ruta'].search_count([])
+        self.encuestas_count = self.env['survey.survey'].search_count([])
 
 class CajaChica(models.Model):
     _name = 'hr_cardic.caja_chica'
     _description = 'Gestión de Caja Chica'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Selection([
         ('puebla', 'Puebla'),

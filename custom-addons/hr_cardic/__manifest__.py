@@ -9,6 +9,7 @@
     'depends': [
         'base',
         'hr',
+        'hr_expense',
         'hr_recruitment',
         'hr_contract',
         'hr_attendance',
