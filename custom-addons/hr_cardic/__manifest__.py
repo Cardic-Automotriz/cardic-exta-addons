@@ -10,6 +10,8 @@
     'data': [
         'security/ir.model.access.csv',
         'views/views.xml',
+        'report/report_finiquito.xml',
+        'report/report_liquidacion.xml',
     ],
     'installable': True,
     'application': True,

@@ -1,0 +1,110 @@
+<odoo>
+  <template id="reporte_finiquito_pdf_template">
+    <t t-call="web.html_container">
+      <t t-call="web.external_layout">
+        <t t-foreach="docs" t-as="doc">
+          <div style="text-align:center; margin-top:30px;">
+            <span style="font-size:22px; font-weight:bold;">Cardic Automotriz</span><br/>
+            <span style="font-size:14px;">Av. Ejemplo 123, CDMX</span>
+          </div>
+          <div style="background:#222; color:#fff; text-align:center; font-size:18px; font-weight:bold; margin:20px 0; padding:8px;">
+            REPORTE DE FINIQUITO
+          </div>
+          <!-- Datos del trabajador -->
+          <div style="margin-bottom:18px;">
+            <table style="width:100%;">
+              <tr>
+                <td style="width:40%; vertical-align:top;">
+                  <strong>Nombre del trabajador:</strong> <t t-esc="doc.employee_id.name"/><br/>
+                  <strong>Fecha de entrada:</strong> <t t-esc="doc.fecha_inicio"/><br/>
+                  <strong>Fecha de término:</strong> <t t-esc="doc.fecha_fin"/><br/>
+                  <strong>Sueldo diario:</strong> <t t-esc="('%.4f' % doc.salario_diario)"/>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- Tabla de percepciones y deducciones con borde solo exterior y sin bordes internos -->
+          <style>
+            .tabla-externa, .tabla-externa th, .tabla-externa td {
+              border: 1px solid #333 !important;
+              border-collapse: collapse;
+            }
+            .tabla-interna, .tabla-interna th, .tabla-interna td {
+              border: none !important;
+              border-width: 0 !important;
+              border-style: none !important;
+              border-color: transparent !important;
+              background: none !important;
+              box-shadow: none !important;
+            }
+          </style>
+          <table class="tabla-externa" style="width:100%; border-collapse:collapse;">
+            <tr>
+              <th style="background:#eee; padding:6px;">Percepciones</th>
+              <th style="background:#eee; padding:6px;">Deducciones</th>
+            </tr>
+            <tr>
+              <td style="vertical-align:top; padding:6px;">
+                <table class="tabla-interna" style="width:100%;">
+                  <tr><td style="text-align:left;">Proporcional de aguinaldo:</td><td style="text-align:right;"> <t t-esc="('%.4f' % doc.proporcional_aguinaldo)"/></td></tr>
+                  <tr><td style="text-align:left;">Proporcional para vacaciones:</td><td style="text-align:right;"> <t t-esc="('%.4f' % doc.proporcional_vacaciones_sin_2022)"/></td></tr>
+                  <tr><td style="text-align:left;">Prima vacacional:</td><td style="text-align:right;"> <t t-esc="('%.4f' % doc.prima_vacacional)"/></td></tr>
+                </table>
+              </td>
+              <td style="vertical-align:top; padding:6px;">
+                <table class="tabla-interna" style="width:100%;">
+                  <tr><td style="text-align:left;">ISR de proporcionales:</td><td style="text-align:right;"> <t t-esc="('%.4f' % doc.gravamen_proporcionales)"/></td></tr>
+                  <tr><td style="text-align:left;">IMSS:</td><td style="text-align:right;"> <t t-esc="('%.4f' % doc.total_imss)"/></td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:6px; font-weight:bold;" colspan="1">
+                <table class="tabla-interna" style="width:100%;">
+                  <tr>
+                    <td style="text-align:left;">Total percepciones:</td>
+                    <td style="text-align:right;">
+                      <t t-esc="('%.4f' % (doc.proporcional_aguinaldo + doc.proporcional_vacaciones_sin_2022 + doc.prima_vacacional))"/>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td style="padding:6px; font-weight:bold;" colspan="1">
+                <table class="tabla-interna" style="width:100%;">
+                  <tr>
+                    <td style="text-align:left;">Total deducciones:</td>
+                    <td style="text-align:right;">
+                      <t t-esc="('%.4f' % (doc.gravamen_proporcionales + doc.total_imss))"/>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding:6px; font-weight:bold; text-align:right; border:1px solid #333;">
+                Total neto: <t t-esc="('%.4f' % ((doc.proporcional_aguinaldo + doc.proporcional_vacaciones_sin_2022 + doc.prima_vacacional) - (doc.gravamen_proporcionales + doc.total_imss)))"/>
+              </td>
+            </tr>
+          </table>
+          <!-- Pie de firma con espacio para firmar -->
+          <div style="height:120px;"></div>
+          <div style="text-align:center; margin-top:40px;">
+            <div style="font-size:18px; margin-bottom:60px;">ATENTAMENTE</div>
+            <div style="margin:0 auto; border-top:1px solid #222; width:60%;"></div>
+            <div style="font-size:16px; font-weight:bold; margin-top:8px;">
+              SR (A). <t t-esc="doc.employee_id.name"/>
+            </div>
+          </div>
+        </t>
+      </t>
+    </t>
+  </template>
+
+  <record id="reporte_finiquito_pdf" model="ir.actions.report">
+    <field name="name">Reporte de Finiquito</field>
+    <field name="model">hr_cardic.finiquito</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">hr_cardic.reporte_finiquito_pdf_template</field>
+    <field name="print_report_name">'Reporte de Finiquito - %s' % (object.employee_id.name)</field>
+  </record>
+</odoo> 

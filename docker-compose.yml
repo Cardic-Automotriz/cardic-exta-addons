@@ -23,6 +23,7 @@ services:
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
+    command: -- --init base --database odoo --without-demo all
     volumes:
       - ./custom-addons:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf:ro
