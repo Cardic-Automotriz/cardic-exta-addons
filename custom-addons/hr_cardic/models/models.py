@@ -1,5 +1,6 @@
 from odoo import models, fields, api
-from datetime import date
+from odoo.exceptions import ValidationError
+from datetime import datetime, timedelta, date
 
 class SolicitudVacante(models.Model):
     _name = 'hr_cardic.solicitud'
@@ -41,29 +42,151 @@ class SolicitudVacante(models.Model):
     def action_aprobar_y_publicar(self):
         Job = self.env['hr.job']
         for solicitud in self:
-            # Construir descripción extendida
             descripcion = solicitud.description or ''
             descripcion += f"\nNivel de estudios: {dict(self._fields['nivel_estudios'].selection).get(solicitud.nivel_estudios, '')}"
             descripcion += f"\nHorario: {dict(self._fields['horario'].selection).get(solicitud.horario, '')}"
             descripcion += f"\nSalario propuesto: {solicitud.salario} {solicitud.currency_id.name}"
-            # Crear la vacante en hr.job
             job_vals = {
                 'name': solicitud.name,
                 'description': descripcion,
                 'requirements': descripcion,
-                # Puedes mapear más campos aquí si lo deseas
             }
             Job.create(job_vals)
             solicitud.estado = 'publicada'
 
-
 class Ruta(models.Model):
     _name = 'hr_cardic.ruta'
-    _description = 'Ruta'
+    _description = 'Rutas de Empleados'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'fecha desc, name'
 
-    name = fields.Char(string="Nombre de la Ruta", required=True)
-    descripcion = fields.Text(string="Descripción")
+    name = fields.Char(string="Nombre de la Ruta", required=True, tracking=True)
+    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, tracking=True)
+    fecha = fields.Date(string="Fecha", required=True, default=fields.Date.today, tracking=True)
+    zona = fields.Selection([
+        ('puebla', 'Puebla'),
+        ('cuernavaca', 'Cuernavaca'),
+        ('queretaro', 'Querétaro'),
+        ('toluca', 'Toluca'),
+        ('pachuca', 'Pachuca'),
+    ], string="Zona", required=True, tracking=True)
+    
+    task_id = fields.Many2one('project.task', string="Tarea Relacionada")
+    hora_inicio = fields.Datetime(string="Hora de Inicio", tracking=True)
+    hora_fin = fields.Datetime(string="Hora de Finalización", tracking=True)
+    duracion = fields.Float(string="Duración (Horas)", compute='_compute_duracion', store=True)
+    estado = fields.Selection([
+        ('borrador', 'Borrador'),
+        ('en_progreso', 'En Progreso'),
+        ('finalizado', 'Finalizado'),
+        ('aprobado', 'Aprobado')
+    ], string="Estado", default='borrador', tracking=True)
+    
+    # Campos contables
+    saldo_inicial = fields.Monetary(string="Saldo Inicial", tracking=True, required=True)
+    saldo_actual = fields.Monetary(string="Saldo Actual", compute='_compute_saldo_actual', store=True)
+    currency_id = fields.Many2one('res.currency', string='Moneda', 
+        default=lambda self: self.env.company.currency_id.id, required=True)
+    cuenta_analitica_id = fields.Many2one('account.analytic.account', string='Cuenta Analítica')
+    gastos_ids = fields.One2many('hr_cardic.gasto_ruta', 'ruta_id', string="Gastos")
+    company_id = fields.Many2one('res.company', string='Compañía', 
+        default=lambda self: self.env.company.id, required=True)
+    caja_chica_id = fields.Many2one('hr_cardic.caja_chica', string="Caja Chica Asociada")
 
+    @api.depends('hora_inicio', 'hora_fin')
+    def _compute_duracion(self):
+        for ruta in self:
+            if ruta.hora_inicio and ruta.hora_fin:
+                duracion = (ruta.hora_fin - ruta.hora_inicio).total_seconds() / 3600
+                ruta.duracion = round(duracion, 2)
+            else:
+                ruta.duracion = 0.0
+
+    @api.depends('saldo_inicial', 'gastos_ids.importe')
+    def _compute_saldo_actual(self):
+        for ruta in self:
+            total_gastos = sum(ruta.gastos_ids.mapped('importe'))
+            ruta.saldo_actual = ruta.saldo_inicial - total_gastos
+
+    def action_iniciar(self):
+        self.write({
+            'estado': 'en_progreso',
+            'hora_inicio': fields.Datetime.now()
+        })
+
+    def action_finalizar(self):
+        self.write({
+            'estado': 'finalizado',
+            'hora_fin': fields.Datetime.now()
+        })
+
+    def action_aprobar(self):
+        self.write({'estado': 'aprobado'})
+
+    def action_borrador(self):
+        if self.estado != 'aprobado':
+            self.write({'estado': 'borrador'})
+
+    @api.constrains('saldo_inicial')
+    def _check_saldo_inicial(self):
+        for ruta in self:
+            if ruta.saldo_inicial <= 0:
+                raise ValidationError('El saldo inicial debe ser mayor que 0.')
+
+    @api.model
+    def create(self, vals):
+        ruta = super().create(vals)
+        # Crear la caja chica asociada
+        caja_vals = {
+            'name': ruta.zona,
+            'fecha_inicio': ruta.fecha,
+            'fecha_fin': ruta.fecha,
+            'saldo_inicial': ruta.saldo_inicial,
+            'estado': 'borrador',
+        }
+        caja = self.env['hr_cardic.caja_chica'].create(caja_vals)
+        ruta.write({'caja_chica_id': caja.id})
+
+        # Buscar el usuario admin (puedes cambiar el login si quieres otro usuario)
+        admin_user = self.env.ref('base.user_admin')
+        if admin_user.partner_id:
+            # Agregar admin como seguidor si no lo es
+            ruta.message_subscribe(partner_ids=[admin_user.partner_id.id])
+            # Mandar mensaje al chatter y notificar
+            ruta.message_post(
+                body=f'Se ha creado la ruta <b>{ruta.name}</b> y la caja chica asociada.',
+                subject='Nueva Ruta y Caja Chica',
+                partner_ids=[admin_user.partner_id.id],
+                message_type='notification'
+            )
+        return ruta
+
+class GastoRuta(models.Model):
+    _name = 'hr_cardic.gasto_ruta'
+    _description = 'Gastos de Ruta'
+    _order = 'fecha desc'
+
+    ruta_id = fields.Many2one('hr_cardic.ruta', string="Ruta", required=True)
+    fecha = fields.Date(string="Fecha", required=True, default=fields.Date.today)
+    concepto = fields.Char(string="Concepto", required=True)
+    importe = fields.Monetary(string="Importe", required=True)
+    currency_id = fields.Many2one('res.currency', related='ruta_id.currency_id', store=True)
+    notas = fields.Text(string="Notas")
+    company_id = fields.Many2one('res.company', related='ruta_id.company_id', store=True)
+    
+    # Campos contables
+    cuenta_id = fields.Many2one('account.account', string='Cuenta Contable', 
+        domain="[('company_id', '=', company_id)]", required=True)
+    cuenta_analitica_id = fields.Many2one('account.analytic.account', string='Cuenta Analítica',
+        related='ruta_id.cuenta_analitica_id', store=True)
+    
+    @api.constrains('importe')
+    def _check_importe(self):
+        for gasto in self:
+            if gasto.importe <= 0:
+                raise ValidationError('El importe debe ser mayor que 0.')
+            if gasto.importe > gasto.ruta_id.saldo_actual:
+                raise ValidationError('El gasto no puede ser mayor que el saldo actual.')
 
 class RhhDashboard(models.TransientModel):
     _name = 'hr_cardic.rhh_dashboard'
@@ -76,6 +199,7 @@ class RhhDashboard(models.TransientModel):
     vacaciones_count = fields.Integer(string="Faltas y Vacaciones", compute="_compute_counts")
     cajas_count = fields.Integer(string="Cajas", compute="_compute_counts")
     rutas_count = fields.Integer(string="Rutas", compute="_compute_counts")
+    encuestas_count = fields.Integer(string="Evaluaciones/Entrevistas", compute="_compute_counts")
 
     @api.depends()
     def _compute_counts(self):
@@ -84,12 +208,14 @@ class RhhDashboard(models.TransientModel):
         self.empleados_count = self.env['hr.employee'].search_count([])
         self.asistencias_count = self.env['hr.attendance'].search_count([])
         self.vacaciones_count = self.env['hr.leave'].search_count([])
-        self.cajas_count = self.env['hr_cardic.caja'].search_count([])
+        self.cajas_count = self.env['hr_cardic.caja_chica'].search_count([])
         self.rutas_count = self.env['hr_cardic.ruta'].search_count([])
+        self.encuestas_count = self.env['survey.survey'].search_count([])
 
 class CajaChica(models.Model):
     _name = 'hr_cardic.caja_chica'
     _description = 'Gestión de Caja Chica'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Selection([
         ('puebla', 'Puebla'),
@@ -774,3 +900,14 @@ class Liquidacion(models.Model):
             rec.cv = round(0.01125 * (rec.sdi or 0) * (rec.dias_trabajados_quincena or 0), 2)
             # Total IMSS
             rec.total_imss = round((rec.excedente or 0) + (rec.gastos_medicos or 0) + (rec.en_dinero or 0) + (rec.invalidez_vida or 0) + (rec.cv or 0), 2)
+class HrExpense(models.Model):
+    _inherit = 'hr.expense'
+
+    caja_chica_id = fields.Many2one('hr_cardic.caja_chica', string='Caja Chica')
+    ruta_id = fields.Many2one('hr_cardic.ruta', string='Ruta')
+
+    # Opcional: sincronizar ruta automáticamente si se selecciona una caja chica
+    @api.onchange('caja_chica_id')
+    def _onchange_caja_chica_id(self):
+        if self.caja_chica_id and self.caja_chica_id.ruta_ids:
+            self.ruta_id = self.caja_chica_id.ruta_ids[0]
