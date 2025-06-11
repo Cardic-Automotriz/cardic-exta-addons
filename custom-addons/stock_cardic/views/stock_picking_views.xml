@@ -1,0 +1,12 @@
+<odoo>
+    <record id="view_picking_form_inherit_empresa" model="ir.ui.view">
+        <field name="name">stock.picking.form.empresa_txt</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+          <xpath expr="//field[@name='scheduled_date']" position="after">
+            <field name="empresa_origen_txt"/>
+          </xpath>
+        </field>
+    </record>
+</odoo>
