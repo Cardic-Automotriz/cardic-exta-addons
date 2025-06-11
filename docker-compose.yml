@@ -23,9 +23,10 @@ services:
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-    command: odoo -i base -d odoo --update rekognition_attendance
+environment:
+  - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+  - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+command: odoo -i base -d odoo --without-demo all --update rekognition_attendance
     volumes:
       - ./custom-addons:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf:ro
