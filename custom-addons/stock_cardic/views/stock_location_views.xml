@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_location_form_inherit_empresa" model="ir.ui.view">
+        <field name="name">stock.location.form.empresa_txt</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar tu campo después del campo 'name' existente -->
+            <xpath expr="//sheet" position="inside">
+                <group>
+                    <group>
+                        <field name="name"/>
+                        <field name="empresa_origen_txt"/>
+                        <field name="usage"/>
+                        <field name="location_id"/>
+                    </group>
+                    <group>
+                        <field name="company_id"/>
+                        <field name="active"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
