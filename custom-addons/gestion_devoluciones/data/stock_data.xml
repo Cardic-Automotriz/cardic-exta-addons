@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- 1. Nueva Ubicación para recibir las devoluciones -->
+        <record id="stock_location_returns" model="stock.location">
+            <field name="name">Devoluciones</field>
+            <!-- Asumimos que la ubicación padre es la principal del almacén. Ajústala si es necesario. -->
+            <field name="location_id" ref="stock.warehouse_stock_loc"/>
+            <field name="usage">internal</field>
+            <field name="comment">Ubicación para productos devueltos pendientes de inspección.</field>
+        </record>
+
+        <!-- 2. Nueva Ubicación para productos en Garantía -->
+        <record id="stock_location_warranty" model="stock.location">
+            <field name="name">Garantía</field>
+            <field name="location_id" ref="stock.warehouse_stock_loc"/>
+            <field name="usage">internal</field>
+            <field name="comment">Ubicación para productos que requieren revisión de garantía.</field>
+        </record>
+
+        <!-- 3. Nuevo Tipo de Operación para Devoluciones -->
+        <record id="picking_type_returns" model="stock.picking.type">
+            <field name="name">Devoluciones de Clientes</field>
+            <field name="code">incoming</field>
+            <field name="warehouse_id" ref="stock.warehouse0"/> <!-- Asocia esto a tu almacén principal -->
+            <field name="use_create_lots">True</field>
+            <field name="use_existing_lots">True</field>
+            <!-- Por defecto, las devoluciones van de los clientes... -->
+            <field name="default_location_src_id" ref="stock.stock_location_customers"/>
+            <!-- ...a nuestra nueva ubicación de Devoluciones. -->
+            <field name="default_location_dest_id" ref="stock_location_returns"/>
+            <field name="sequence_code">RETURN</field>
+        </record>
+
+    </data>
+</odoo>

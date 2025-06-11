@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_inherit_return_management" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.return</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- 1. Añadir el botón en la cabecera -->
+            <xpath expr="//header" position="inside">
+                <button name="action_process_return"
+                        string="Procesar Devolución"
+                        type="object"
+                        class="oe_highlight"
+                        attrs="{'invisible': ['|', ('state', 'in', ['draft', 'cancel', 'done']), ('picking_type_code', '!=', 'incoming')]}"/>
+            </xpath>
+
+            <!-- 2. Añadir el campo de selección para que sea visible -->
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <!-- Solo mostramos esta opción en nuestras devoluciones -->
+                <field name="return_destination"
+                       attrs="{'invisible': [('picking_type_id', '!=', %(gestion_devoluciones.picking_type_returns)d)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
