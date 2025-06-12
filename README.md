@@ -6,16 +6,9 @@ Este directorio contiene los módulos personalizados desarrollados para Cardic A
 
 ```
 odoo-custom-addons/
-├── profile_work/           # Módulo de gestión de vacantes RRHH
-│   ├── __init__.py
-│   ├── __manifest__.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── models.py
-│   ├── security/
-│   │   └── ir.model.access.csv
-│   └── views/
-│       └── views.xml
+├── hr_cardic/           # Módulo de gestión de vacantes RRHH
+├── stock_cardic/  
+├── ml_connector/
 └── README.md
 ```
 
