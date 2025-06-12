@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Acción que abre la lista de Clasificaciones de Devoluciones -->
+    <record id="action_returns_classification_picking" model="ir.actions.act_window">
+        <field name="name">Clasificación de Devoluciones</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <!-- Filtramos para que solo muestre albaranes de nuestro tipo -->
+        <field name="domain">[('picking_type_id', '=', %(gestion_devoluciones.picking_type_returns_classification)d)]</field>
+        <!-- Pre-configuramos el tipo de operación al crear uno nuevo -->
+        <field name="context">{"default_picking_type_id": %(gestion_devoluciones.picking_type_returns_classification)d}</field>
+        <!-- Vistas específicas para la clasificación de devoluciones -->
+        <field name="view_ids" eval="[(5, 0, 0),
+                  (0, 0, {'view_mode': 'tree', 'view_id': ref('view_picking_tree_returns_classification')}),
+                  (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_picking_form')})]"/>
+        <field name="search_view_id" ref="view_picking_search_returns_classification"/>
+    </record>
+
+    <!-- Acción para importar devoluciones desde la API -->
+    <record id="action_fetch_market_returns" model="ir.actions.server">
+        <field name="name">Importar Devoluciones del Mercado</field>
+        <field name="model_id" ref="model_stock_picking"/>
+        <field name="state">code</field>
+        <field name="code">
+            result = model.fetch_market_returns()
+            if result:
+                action = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Devoluciones Importadas',
+                        'message': 'Las devoluciones del mercado han sido importadas correctamente',
+                        'sticky': False,
+                        'type': 'success'
+                    }
+                }
+            else:
+                action = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Error',
+                        'message': 'Hubo un problema al importar las devoluciones',
+                        'sticky': False,
+                        'type': 'danger'
+                    }
+                }
+        </field>
+    </record>
+
+    <!-- Menú Principal de la Aplicación -->
+    <menuitem
+        id="menu_return_management_root"
+        name="Gestión de Devoluciones"
+        web_icon="gestion_devoluciones,static/description/icon.png"
+        sequence="25"/>
+
+    <!-- Menú para la acción de Clasificación -->
+    <menuitem
+        id="menu_action_returns_classification"
+        action="action_returns_classification_picking"
+        parent="menu_return_management_root"
+        name="Clasificar Devoluciones"
+        sequence="10"/>
+
+    <!-- Menú para importar devoluciones -->
+    <menuitem
+        id="menu_action_fetch_market_returns"
+        action="action_fetch_market_returns"
+        parent="menu_return_management_root"
+        name="Importar Devoluciones del Mercado"
+        sequence="20"/>
+</odoo>
