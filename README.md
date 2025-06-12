@@ -1,8 +1,8 @@
 
 # 📦 Módulos Personalizados Odoo – Cardic Automotriz
 
-![Odoo Version](https://img.shields.io/badge/Odoo-16.0+-brightgreen)  
-![Python Version](https://img.shields.io/badge/Python-3.8+-blue)  
+![Odoo Version](https://img.shields.io/badge/Odoo-17.0+-brightgreen)  
+![Python Version](https://img.shields.io/badge/Python-3.10.12+-blue)  
 ![License](https://img.shields.io/badge/Licencia-Privada-red)  
 ![Status](https://img.shields.io/badge/Estado-En%20producción-success)
 
@@ -17,6 +17,9 @@ odoo-custom-addons/
 ├── hr_cardic/           # Gestión de vacantes de RRHH
 ├── stock_cardic/        # Rutas personalizadas de almacén y devoluciones
 ├── ml_connector/        # Conector con Mercado Libre México
+├── odoo.conf            # Configuración de Odoo base
+├── test/
+├── docker-compose.yml
 └── README.md
 ```
 
@@ -34,8 +37,9 @@ odoo-custom-addons/
 
 ## ⚙️ Requisitos de Desarrollo
 
-- 🐍 Python `3.8+`
-- 🧩 Odoo `16.0+`
+- 🐍 Python `3.10.12+`
+- 🧩 Odoo `17.0+`
+- 📦 Docker
 - ☁️ Acceso al entorno AWS o servidor de desarrollo Odoo
 
 ---
