@@ -1,177 +1,180 @@
-# Módulos Personalizados Odoo - Cardic Automotriz
 
-Este directorio contiene los módulos personalizados desarrollados para Cardic Automotriz en Odoo.
+# 📦 Módulos Personalizados Odoo – Cardic Automotriz
 
-## Estructura de Directorios
+![Odoo Version](https://img.shields.io/badge/Odoo-16.0+-brightgreen)  
+![Python Version](https://img.shields.io/badge/Python-3.8+-blue)  
+![License](https://img.shields.io/badge/Licencia-Privada-red)  
+![Status](https://img.shields.io/badge/Estado-En%20producción-success)
 
-```
+Este repositorio contiene los módulos personalizados desarrollados para **Cardic Automotriz** sobre la plataforma **Odoo**.
+
+---
+
+## 📁 Estructura de Directorios
+
+```text
 odoo-custom-addons/
-├── hr_cardic/           # Módulo de gestión de vacantes RRHH
-├── stock_cardic/  
-├── ml_connector/
+├── hr_cardic/           # Gestión de vacantes de RRHH
+├── stock_cardic/        # Rutas personalizadas de almacén y devoluciones
+├── ml_connector/        # Conector con Mercado Libre México
 └── README.md
 ```
 
-## Módulos Disponibles
+---
 
-### rh_cardic
-Módulo para la gestión de vacantes de recursos humanos.
+## 📦 Módulos Disponibles
 
-### stock_cardic
-Módulo para la gestión de rutas personalizadas de almacen. Manejo de multi empresa  
-y gestión de devoluciones, surtiendo el stock de las plataformas digitales y el punto de venta
+| Módulo        | Descripción |
+|---------------|-------------|
+| `hr_cardic`   | Gestión de vacantes del área de Recursos Humanos. |
+| `stock_cardic`| Gestión de rutas personalizadas de almacén, multiempresa, devoluciones y sincronización con plataformas externas. |
+| `ml_connector`| Conexión con la API de Mercado Libre México para la sincronización y actualización masiva de publicaciones. Soporta más de **2.6M publicaciones** en 5 tiendas. |
 
-### ml_connector
-Módulo de conexión con Mercado Libre México, mediante el uso de su API y optimización de  
-algoritmos se sincronizan y actualizan las 2.6M de publicaciones de las 5 tiendas.
+---
 
-#### Características
-- Registro y seguimiento de vacantes
-- Gestión de requisitos y perfiles
-- Integración con el módulo de RRHH
-- Campos personalizados para necesidades específicas de Cardic
+## ⚙️ Requisitos de Desarrollo
 
-#### Campos Principales
-- Nombre de la vacante
-- Descripción
-- Nivel de estudios requerido
-- Horario
-- Salario propuesto
-- Jefe solicitante
-- Fecha de solicitud
+- 🐍 Python `3.8+`
+- 🧩 Odoo `16.0+`
+- ☁️ Acceso al entorno AWS o servidor de desarrollo Odoo
 
-## Desarrollo
+---
 
-### Requisitos
-- Odoo 16.0 o superior
-- Python 3.8+
-- Acceso al servidor de desarrollo
+## 🏗️ Configuración del Entorno
 
-### Configuración del Entorno AWS
+<details>
+<summary><strong>📦 Configuración del entorno en AWS</strong></summary>
 
 1. Asegúrate de que el directorio esté en la ruta correcta:
+
    ```bash
    /opt/odoo/odoo-custom-addons/
    ```
 
-2. Verifica que el directorio esté incluido en la configuración de Odoo:
-   ```bash
-   # En el archivo de configuración de Odoo (odoo.conf)
+2. Verifica que esté incluido en el archivo `odoo.conf`:
+
+   ```ini
    addons_path = /opt/odoo/odoo/addons,/opt/odoo/odoo-custom-addons
    ```
 
-### Instalación de Módulos
-
-1. Reinicia el servidor Odoo:
-   ```bash
-   sudo systemctl restart odoo
-   ```
-
-2. Actualiza la lista de aplicaciones:
-   - Accede al backend de Odoo
-   - Activa el "Modo desarrollador"
-   - Ve a Aplicaciones
-   - Haz clic en "Actualizar lista de aplicaciones"
-
-3. Busca e instala los módulos necesarios
-
-## Guía de Desarrollo
-
-### Crear un Nuevo Módulo
-
-1. Crea la estructura básica del módulo (usando el usuario odoo):
-   ```bash
-   sudo -u odoo mkdir nuevo_modulo
-   cd nuevo_modulo
-   sudo -u odoo mkdir models security views static
-   sudo -u odoo touch __init__.py __manifest__.py
-   sudo -u odoo touch models/__init__.py
-   sudo -u odoo touch security/ir.model.access.csv
-   sudo -u odoo touch views/views.xml
-   ```
-
-2. Configura el `__manifest__.py`:
-   ```python
-   {
-       "name": "Nombre del Módulo",
-       "summary": "Resumen corto",
-       "description": "Descripción detallada",
-       "author": "Cardic Automotriz",
-       "category": "Categoría",
-       "version": "1.0",
-       "depends": ["base"],
-       "data": [
-           "security/ir.model.access.csv",
-           "views/views.xml",
-       ],
-       "installable": True,
-       "application": True,
-   }
-   ```
-### Ejecución en contenedores Docker
-
-Para ejecutar correctamente las instancias con Docker hay dos caminos principales
-
-1. **Usando la base de datos default de odoo**  
-   Odoo proporciona una base de datos, default, con o sin demo data.
-   Para acceder a esta configuración es importante agregar esta linea al docker compose
-   dentro del servicio de odoo.
-
-   ```
-   command: -- --init base --database odoo --without-demo all
-   ```
-
-2. **Usando una base de datos personalizada**
-   Para usar una base de datos propia, se debe instanciar por primera vez con el comando mostrado anteriormente,
-   una vez inicie el comando deberas acceder al módulo de **Gestión de Bases de Datos** en este podras crear tu
-   propia base de datos, configurar el usuario admin, y gestionar si se desea tener datos de prueba o no
-
-### Buenas Prácticas
-
-1. **Control de Versiones**
-   - Usa Git para el control de versiones
-   - Crea ramas para nuevas características
-   - Documenta los cambios en los commits
-
-2. **Código**
-   - Sigue las convenciones de Python (PEP 8)
-   - Documenta las funciones y clases
-   - Mantén el código modular y reutilizable
-
-3. **Seguridad**
-   - Define permisos de acceso apropiados
-   - No expongas datos sensibles
-   - Valida las entradas de usuario
-
-4. **Testing**
-   - Prueba en ambiente de desarrollo
-   - Verifica la compatibilidad con otras versiones
-   - Documenta los casos de prueba
-
-## Mantenimiento
-
-### Actualizaciones
-- Mantén los módulos actualizados con la versión de Odoo
-- Revisa regularmente las dependencias
-- Haz backup antes de actualizar
-
-### Backup
-- Realiza backups regulares de la base de datos
-- Mantén copias de seguridad del código
-- Documenta los procedimientos de recuperación
-
-## Soporte
-
-Para soporte técnico o consultas sobre los módulos:
-- Contacta al equipo de desarrollo de Cardic
-- Reporta problemas en el sistema de tickets
-- Consulta la documentación interna
-
-## Licencia
-
-Estos módulos son propiedad de Cardic Automotriz y su uso está restringido a la empresa.
+</details>
 
 ---
 
-Última actualización: 2024-03-19
-Versión: 1.0
+## 🚀 Instalación de Módulos
+
+```bash
+sudo systemctl restart odoo
+```
+
+Luego:
+1. Accede al backend de Odoo  
+2. Activa el **Modo Desarrollador**  
+3. Ve a **Aplicaciones**  
+4. Haz clic en **Actualizar Lista de Aplicaciones**  
+5. Instala el módulo deseado
+
+---
+
+## 🛠️ Guía de Desarrollo
+
+<details>
+<summary><strong>➕ Crear un nuevo módulo</strong></summary>
+
+```bash
+sudo -u odoo mkdir nuevo_modulo
+cd nuevo_modulo
+sudo -u odoo mkdir models security views static
+sudo -u odoo touch __init__.py __manifest__.py
+sudo -u odoo touch models/__init__.py
+sudo -u odoo touch security/ir.model.access.csv
+sudo -u odoo touch views/views.xml
+```
+
+**Ejemplo de `__manifest__.py`:**
+
+```python
+{
+    "name": "Nombre del Módulo",
+    "summary": "Resumen corto",
+    "description": "Descripción detallada",
+    "author": "Cardic Automotriz",
+    "category": "Categoría",
+    "version": "1.0",
+    "depends": ["base"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/views.xml",
+    ],
+    "installable": True,
+    "application": True,
+}
+```
+
+</details>
+
+---
+
+## 🐳 Ejecución en Contenedores Docker
+
+<details>
+<summary><strong>💡 Opción 1: Base de datos por defecto</strong></summary>
+
+Agrega al `docker-compose.yml`:
+
+```yaml
+command: -- --init base --database odoo --without-demo all
+```
+
+</details>
+
+<details>
+<summary><strong>💼 Opción 2: Base de datos personalizada</strong></summary>
+
+1. Inicializa la base con el comando anterior  
+2. Accede a **Gestión de Bases de Datos**  
+3. Crea tu base, configura el usuario admin y selecciona si deseas datos demo
+
+</details>
+
+---
+
+## ✅ Buenas Prácticas
+
+| Categoría | Recomendaciones |
+|----------|-----------------|
+| **Control de versiones** | Usa `git`, ramas por feature, mensajes de commit claros |
+| **Código** | Sigue PEP8, documenta, mantén el código limpio y reutilizable |
+| **Seguridad** | Define permisos, valida entradas, evita datos sensibles |
+| **Pruebas** | Test en desarrollo, compatibilidad entre versiones, documenta casos de prueba |
+
+---
+
+## 🔄 Mantenimiento
+
+| Área | Tareas |
+|------|--------|
+| **Actualizaciones** | Mantener compatibilidad con Odoo, revisar dependencias, realizar backups |
+| **Backups** | Respaldo de base de datos y del código fuente, con procedimientos documentados |
+
+---
+
+## 🆘 Soporte
+
+Para soporte o reportes:
+
+- 📧 Contacta al equipo de desarrollo de **Cardic Automotriz**
+- 🪪 Usa el sistema interno de tickets
+- 📚 Consulta la documentación interna para dudas comunes
+
+---
+
+## 📜 Licencia
+
+> Estos módulos son propiedad intelectual de **Cardic Automotriz**.  
+> Su uso está **restringido exclusivamente** a personal autorizado de la empresa.
+
+---
+
+📅 **Última actualización:** `2024-03-19`  
+🔢 **Versión:** `1.0`
