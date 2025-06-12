@@ -46,7 +46,7 @@ Módulo para la gestión de vacantes de recursos humanos.
 - Python 3.8+
 - Acceso al servidor de desarrollo
 
-### Configuración del Entorno
+### Configuración del Entorno AWS
 
 1. Asegúrate de que el directorio esté en la ruta correcta:
    ```bash
@@ -107,6 +107,23 @@ Módulo para la gestión de vacantes de recursos humanos.
        "application": True,
    }
    ```
+### Ejecución en contenedores Docker
+
+Para ejecutar correctamente las instancias con Docker hay dos caminos principales
+
+1. **Usando la base de datos default de odoo**  
+   Odoo proporciona una base de datos, default, con o sin demo data.
+   Para acceder a esta configuración es importante agregar esta linea al docker compose
+   dentro del servicio de odoo.
+
+   ```
+   command: -- --init base --database odoo --without-demo all
+   ```
+
+2. **Usando una base de datos personalizada**
+   Para usar una base de datos propia, se debe instanciar por primera vez con el comando mostrado anteriormente,
+   una vez inicie el comando deberas acceder al módulo de **Gestión de Bases de Datos** en este podras crear tu
+   propia base de datos, configurar el usuario admin, y gestionar si se desea tener datos de prueba o no
 
 ### Buenas Prácticas
 
