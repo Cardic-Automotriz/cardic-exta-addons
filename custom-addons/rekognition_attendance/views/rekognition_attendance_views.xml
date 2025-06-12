@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_inherit_rekognition" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.rekognition</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Reconocimiento Facial">
+                    <group>
+                        <field name="face_id" readonly="1"/>
+                        <field name="image_1920"/>
+                        <button name="action_register_face_wizard"
+                                string="Registrar Rostro en AWS"
+                                type="object"
+                                class="btn-primary"/>
+                        <button name="open_chekador_facial_wizard"
+                                string="Abrir Checador Facial"
+                                type="object"
+                                class="btn-secondary"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menú y acción de ventana para Checador -->
+    <record id="action_attendance_chekador" model="ir.actions.act_window">
+        <field name="name">Checador</field>
+        <field name="res_model">rekognition.attendance.chekador</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_attendance_chekador"
+              name="Checador"
+              sequence="6"
+              action="action_attendance_chekador"
+              web_icon="hr_attendance,static/description/icon.png"
+              groups="base.group_user"
+              />
+
+    <record id="view_rekognition_attendance_chekador_form" model="ir.ui.view">
+        <field name="name">rekognition.attendance.chekador.form</field>
+        <field name="model">rekognition.attendance.chekador</field>
+        <field name="arch" type="xml">
+            <form string="Checador Facial">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Checador Facial</h1>
+                    </div>
+                    <group>
+                        <div id="camera_block" style="text-align:center;">
+                            <video id="video" width="320" height="240" autoplay="autoplay"></video>
+                            <br/>
+                            <button type="button" name="snap_photo" class="btn btn-primary" id="snap">Tomar Foto</button>
+                            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+                        </div>
+                        <div id="image_block" style="text-align:center; display:none;">
+                            <img id="photo_result" width="320" height="240"/>
+                            <br/>
+                            <field name="image" invisible="1"/>
+                            <field name="result_message" readonly="1"/>
+                        </div>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_check_attendance" 
+                            type="object" 
+                            class="btn-primary" 
+                            string="Marcar Asistencia"/>
+                    <button special="cancel" 
+                            string="Cerrar" 
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo> 

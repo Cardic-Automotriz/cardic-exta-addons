@@ -6,8 +6,7 @@
       <field name="arch" type="xml">
         <form string="Solicitud de Vacante">
           <header>
-            <button name="action_aprobar_y_publicar" type="object" string="Aprobar y Publicar"
-                invisible="not show_aprobar_y_publicar" class="btn-primary"/>
+            <button name="action_aprobar_y_publicar" type="object" string="Aprobar y Publicar" invisible="show_aprobar_y_publicar == False" class="btn-primary"/>
           </header>
           <sheet>
             <group>
@@ -55,11 +54,6 @@
     <menuitem id="rhh_menu_asistencias" name="Asistencias" parent="rhh_menu_root" action="hr_attendance.hr_attendance_action" sequence="40"/>
     <menuitem id="rhh_menu_timeoff" name="Faltas y Vacaciones" parent="rhh_menu_root" action="hr_holidays.hr_leave_action_action_approve_department" sequence="50"/>
     <menuitem id="rhh_menu_empleados" name="Empleados" parent="rhh_menu_root" action="hr.open_view_employee_list_my" sequence="5"/>
-
-    <!-- Ocultar menú nativo de Employees -->
-    <record id="hr.menu_hr_root" model="ir.ui.menu">
-      <field name="active" eval="False"/>
-    </record>
 
     <!-- Dashboard RRHH -->
     <record id="view_rhh_dashboard" model="ir.ui.view">
@@ -127,6 +121,21 @@
 
     <menuitem id="rhh_menu_dashboard" name="Panel RRHH" parent="rhh_menu_root" action="action_rhh_dashboard" sequence="1"/>
 
+    <!-- Caja Chica -->
+    <record id="view_caja_chica_tree" model="ir.ui.view">
+      <field name="name">Caja Chica Tree</field>
+      <field name="model">hr_cardic.caja_chica</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="fecha_inicio"/>
+          <field name="fecha_fin"/>
+          <field name="total"/>
+          <field name="estado"/>
+        </tree>
+      </field>
+    </record>
+
     <record id="view_caja_chica_form" model="ir.ui.view">
       <field name="name">Caja Chica Form</field>
       <field name="model">hr_cardic.caja_chica</field>
@@ -134,8 +143,8 @@
           <form string="Caja Chica">
             <header>
                 <field name="estado" widget="statusbar" options="{'clickable': True}"/>
-                <button name="action_abierto" type="object" string="Abrir" class="btn-primary"/>
-                <button name="action_aprobar" type="object" string="Aprobar" class="btn-success"/>
+            <button name="action_abierto" type="object" string="Abrir" class="btn-primary" invisible="estado != 'borrador'"/>
+            <button name="action_aprobar" type="object" string="Aprobar" class="btn-success" invisible="estado != 'abierto'"/>
             </header>
             <sheet>
                 <group>
@@ -158,7 +167,25 @@
                     </page>
                 </notebook>
             </sheet>
+            <div class="oe_chatter">
+                <field name="message_follower_ids"/>
+                <field name="activity_ids"/>
+                <field name="message_ids"/>
+            </div>
           </form>
+      </field>
+    </record>
+
+    <record id="view_gasto_tree" model="ir.ui.view">
+      <field name="name">Gasto Tree</field>
+      <field name="model">hr_cardic.gasto</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="fecha_gasto"/>
+          <field name="concepto"/>
+          <field name="importe"/>
+          <field name="subtotal" readonly="1"/>
+        </tree>
       </field>
     </record>
 
@@ -179,5 +206,395 @@
           </form>
       </field>
     </record>
+    <!-- Acción de ventana para Finiquito -->
+    <record id="hr_cardic_finiquito_action_window" model="ir.actions.act_window">
+        <field name="name">Finiquito</field>
+        <field name="res_model">hr_cardic.finiquito</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menú Cálculos al mismo nivel que Faltas y Vacaciones -->
+    <menuitem id="rhh_menu_calculos" name="Cálculos" parent="rhh_menu_root" sequence="55"/>
+
+    <!-- Submenú Finiquito dentro de Cálculos -->
+    <menuitem id="rhh_menu_finiquito" name="Finiquito" parent="rhh_menu_calculos" action="hr_cardic_finiquito_action_window" sequence="1"/>
+
+    <!-- Vista de lista -->
+    <record id="hr_cardic_finiquito_tree" model="ir.ui.view">
+        <field name="name">hr_cardic.finiquito.tree</field>
+        <field name="model">hr_cardic.finiquito</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="employee_id"/>
+                <field name="contract_id"/>
+                <field name="fecha_inicio"/>
+                <field name="fecha_fin"/>
+                <field name="salario"/>
+                <field name="currency_id"/>
+                <field name="dias_trabajados" readonly="1"/>
+                <field name="anios_trabajados" readonly="1"/>
+                <field name="salario_diario" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vistas de Rutas -->
+    <record id="view_ruta_tree" model="ir.ui.view">
+        <field name="name">hr_cardic.ruta.tree</field>
+        <field name="model">hr_cardic.ruta</field>
+        <field name="arch" type="xml">
+            <tree string="Rutas" decoration-info="estado == 'borrador'" decoration-warning="estado == 'en_progreso'" decoration-success="estado == 'finalizado'" decoration-muted="estado == 'aprobado'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="fecha"/>
+                <field name="zona"/>
+                <field name="duracion"/>
+                <field name="saldo_inicial"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="saldo_actual"/>
+                <field name="estado"/>
+            </tree>
+        </field>
+    </record>
+ <!-- Vista de formulario para finqiuito-->
+    <record id="hr_cardic_finiquito_form" model="ir.ui.view">
+        <field name="name">hr_cardic.finiquito.form</field>
+        <field name="model">hr_cardic.finiquito</field>
+        <field name="arch" type="xml">
+            <form string="Finiquito">
+                <header>
+                    <button name="action_descargar_finiquito" type="object" string="Descargar" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="o_form_sheet_bg">
+                        <div class="o_form_sheet">
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="contract_id"/>
+                                <field name="fecha_inicio"/>
+                                <field name="fecha_fin"/>
+                                <field name="salario"/>
+                                <field name="currency_id"/>
+                                <field name="dias_trabajados" readonly="1"/>
+                                <field name="anios_trabajados" readonly="1"/>
+                                <field name="salario_diario" readonly="1"/>
+                                <field name="salario_proporcional" readonly="1"/>
+                                <field name="sdi" readonly="1"/>
+                                <field name="dias_trabajados_quincena" readonly="1"/>
+                                <field name="bono"/>
+                            </group>
+                            <group string="Proporcional de aguinaldo">
+                                <field name="dias_aguinaldo"/>
+                                <field name="primer_dia_ano" readonly="1"/>
+                                <field name="dias_trabajados_aguinaldo" readonly="1"/>
+                                <field name="factor_aguinaldo" readonly="1"/>
+                                <field name="dias_que_corresponde" readonly="1"/>
+                                <field name="proporcional_aguinaldo" readonly="1"/>
+                            </group>
+                            <group string="Proporcional de vacaciones">
+                                <field name="anios_cumplidos" readonly="1"/>
+                                <field name="dias_vacaciones" readonly="1"/>
+                                <field name="factor_vacaciones" readonly="1"/>
+                                <field name="dias_que_le_corresponde" readonly="1"/>
+                                <field name="proporcional_vacaciones_sin_2022" readonly="1"/>
+                            </group>
+                            <group string="Proporcional a prima vacacional">
+                                <field name="porcentaje_prima"/>
+                                <field name="prima_vacacional" readonly="1"/>
+                            </group>
+                            <group string="Impuestos de Proporcionales">
+                                <field name="gravamen_aguinaldo" readonly="1"/>
+                                <field name="gravamen_prima_vacacional" readonly="1"/>
+                                <field name="gravamen_bono" readonly="1"/>
+                                <field name="total_gravamenes" readonly="1"/>
+                                <field name="gravamen_proporcionales" readonly="1"/>
+                            </group>
+                            <group string="Enfermedades y maternidad">
+                                <field name="roimss" readonly="1"/>
+                                <field name="excedente" readonly="1"/>
+                                <field name="gastos_medicos" readonly="1"/>
+                                <field name="en_dinero" readonly="1"/>
+                            </group>
+                            <group string="Invalidez y vida">
+                                <field name="invalidez_vida" readonly="1"/>
+                            </group>
+                            <group string="Retiro Cesantia en edad Avanzada y Vejez">
+                                <field name="cv" readonly="1"/>
+                            </group>
+                            <group string="Total de indemnizaciones de IMSS">
+                                <field name="total_imss" readonly="1"/>
+                            </group>
+                        </div>
+                        <div class="oe_chatter">
+                            <field name="message_follower_ids" widget="mail_followers"/>
+                            <field name="activity_ids"/>
+                            <field name="message_ids"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Acción de ventana para Liquidación -->
+    <record id="hr_cardic_liquidacion_action_window" model="ir.actions.act_window">
+        <field name="name">Liquidación</field>
+        <field name="res_model">hr_cardic.liquidacion</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Submenú Liquidación dentro de Cálculos -->
+    <menuitem id="rhh_menu_liquidacion" name="Liquidación" parent="rhh_menu_calculos" action="hr_cardic_liquidacion_action_window" sequence="2"/>
+
+    <!-- Vista de lista para Liquidación -->
+    <record id="hr_cardic_liquidacion_tree" model="ir.ui.view">
+        <field name="name">hr_cardic.liquidacion.tree</field>
+        <field name="model">hr_cardic.liquidacion</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="employee_id"/>
+                <field name="contract_id"/>
+                <field name="fecha_inicio"/>
+                <field name="fecha_fin"/>
+                <field name="salario"/>
+                <field name="currency_id"/>
+                <field name="dias_trabajados" readonly="1"/>
+                <field name="anios_trabajados" readonly="1"/>
+                <field name="salario_diario" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de formulario para Liquidación -->
+    <record id="hr_cardic_liquidacion_form" model="ir.ui.view">
+        <field name="name">hr_cardic.liquidacion.form</field>
+        <field name="model">hr_cardic.liquidacion</field>
+        <field name="arch" type="xml">
+            <form string="Liquidación">
+                <header>
+                    <button name="action_descargar_liquidacion" type="object" string="Descargar" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="o_form_sheet_bg">
+                        <div class="o_form_sheet">
+                            <group>
+                                <field name="employee_id"/>
+                                <field name="contract_id"/>
+                                <field name="fecha_inicio"/>
+                                <field name="fecha_fin"/>
+                                <field name="salario"/>
+                                <field name="currency_id"/>
+                                <field name="dias_trabajados" readonly="1"/>
+                                <field name="anios_trabajados" readonly="1"/>
+                                <field name="salario_diario" readonly="1"/>
+                                <field name="salario_proporcional" readonly="1"/>
+                                <field name="sdi" readonly="1"/>
+                                <field name="dias_trabajados_quincena" readonly="1"/>
+                                <field name="bono"/>
+                            </group>
+                            <group string="Indemnización">
+                                <field name="indemnizacion" readonly="1"/>
+                                <field name="veinte_dias_por_anio" readonly="1"/>
+                                <field name="prima_antiguedad" readonly="1"/>
+                            </group>
+                            <group string="Impuestos de Indemnización">
+                                <field name="monto_exento_indemnizacion" readonly="1"/>
+                                <field name="salario_mensual_ordinario" readonly="1"/>
+                                <field name="excedente1" readonly="1"/>
+                                <field name="factor_conversion" readonly="1"/>
+                                <field name="importe_gravado" readonly="1"/>
+                                <field name="retencion_isr" readonly="1"/>
+                                <field name="total_indemnizacion" readonly="1"/>
+                                <field name="gravamen_veinte_dias" readonly="1"/>
+                                <field name="retencion_veinte_dias" readonly="1"/>
+                                <field name="total_indemnizacion_veinte_dias" readonly="1"/>
+                                <field name="gravado_prima_antiguedad" readonly="1"/>
+                                <field name="retencion_prima_antiguedad" readonly="1"/>
+                                <field name="total_indemnizacion_prima_antiguedad" readonly="1"/>
+                            </group>
+                            <group string="Proporcional de aguinaldo">
+                                <field name="dias_aguinaldo"/>
+                                <field name="primer_dia_ano" readonly="1"/>
+                                <field name="dias_trabajados_aguinaldo" readonly="1"/>
+                                <field name="factor_aguinaldo" readonly="1"/>
+                                <field name="dias_que_corresponde" readonly="1"/>
+                                <field name="proporcional_aguinaldo" readonly="1"/>
+                            </group>
+                            <group string="Proporcional de vacaciones">
+                                <field name="anios_cumplidos" readonly="1"/>
+                                <field name="dias_vacaciones" readonly="1"/>
+                                <field name="factor_vacaciones" readonly="1"/>
+                                <field name="dias_que_le_corresponde" readonly="1"/>
+                                <field name="proporcional_vacaciones_sin_2022" readonly="1"/>
+                            </group>
+                            <group string="Proporcional a prima vacacional">
+                                <field name="porcentaje_prima"/>
+                                <field name="prima_vacacional" readonly="1"/>
+                            </group>
+                            <group string="Impuestos de Proporcionales">
+                                <field name="gravamen_aguinaldo" readonly="1"/>
+                                <field name="gravamen_prima_vacacional" readonly="1"/>
+                                <field name="gravamen_bono" readonly="1"/>
+                                <field name="total_gravamenes" readonly="1"/>
+                                <field name="gravamen_proporcionales" readonly="1"/>
+                            </group>
+                            <group string="Enfermedades y maternidad">
+                                <field name="roimss" readonly="1"/>
+                                <field name="excedente" readonly="1"/>
+                                <field name="gastos_medicos" readonly="1"/>
+                                <field name="en_dinero" readonly="1"/>
+                            </group>
+                            <group string="Invalidez y vida">
+                                <field name="invalidez_vida" readonly="1"/>
+                            </group>
+                            <group string="Retiro Cesantia en edad Avanzada y Vejez">
+                                <field name="cv" readonly="1"/>
+                            </group>
+                            <group string="Total de indemnizaciones de IMSS">
+                                <field name="total_imss" readonly="1"/>
+                            </group>
+                        </div>
+                        <div class="oe_chatter">
+                            <field name="message_follower_ids" widget="mail_followers"/>
+                            <field name="activity_ids"/>
+                            <field name="message_ids"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_ruta_form" model="ir.ui.view">
+        <field name="name">hr_cardic.ruta.form</field>
+        <field name="model">hr_cardic.ruta</field>
+        <field name="arch" type="xml">
+            <form string="Ruta">
+                <header>
+                    <button name="action_iniciar" string="Iniciar" type="object" class="oe_highlight" invisible="estado != 'borrador'"/>
+                    <button name="action_finalizar" string="Finalizar" type="object" class="oe_highlight" invisible="estado != 'en_progreso'"/>
+                    <button name="action_aprobar" string="Aprobar" type="object" class="oe_highlight" invisible="estado != 'finalizado'"/>
+                    <button name="action_borrador" string="Volver a Borrador" type="object" invisible="estado == 'aprobado'"/>
+                    <field name="estado" widget="statusbar" statusbar_visible="borrador,en_progreso,finalizado,aprobado"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nombre de la Ruta"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="fecha"/>
+                            <field name="zona"/>
+                            <field name="task_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                        </group>
+                        <group>
+                            <field name="hora_inicio" readonly="1"/>
+                            <field name="hora_fin" readonly="1"/>
+                            <field name="duracion" widget="float_time"/>
+                            <field name="saldo_inicial"/>
+                            <field name="saldo_actual"/>
+                            <field name="cuenta_analitica_id" groups="analytic.group_analytic_accounting"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Gastos">
+                            <field name="gastos_ids">
+                                <tree editable="bottom">
+                                    <field name="fecha"/>
+                                    <field name="concepto"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="importe"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="notas"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ruta_search" model="ir.ui.view">
+        <field name="name">hr_cardic.ruta.search</field>
+        <field name="model">hr_cardic.ruta</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Rutas">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="zona"/>
+                <filter string="Mis Rutas" name="my_routes" domain="[('employee_id.user_id', '=', uid)]"/>
+                <filter string="En Progreso" name="en_progreso" domain="[('estado', '=', 'en_progreso')]"/>
+                <filter string="Finalizadas" name="finalizado" domain="[('estado', '=', 'finalizado')]"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Empleado" name="employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Zona" name="zone" context="{'group_by': 'zona'}"/>
+                    <filter string="Estado" name="state" context="{'group_by': 'estado'}"/>
+                    <filter string="Fecha" name="date" context="{'group_by': 'fecha'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ruta" model="ir.actions.act_window">
+        <field name="name">Rutas</field>
+        <field name="res_model">hr_cardic.ruta</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_my_routes': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primera ruta
+            </p>
+            <p>
+                Registra las rutas y gastos asociados a cada empleado.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_hr_routes"
+              name="Rutas"
+              parent="rhh_menu_root"
+              sequence="75"/>
+
+    <menuitem id="menu_ruta"
+              name="Rutas"
+              parent="menu_hr_routes"
+              action="action_ruta"
+              sequence="1"/>
+
+    <menuitem id="menu_chekador_facial_prueba"
+              name="Checador Facial"
+              parent="rhh_menu_root"
+              action="rekognition_attendance.action_attendance_chekador"
+              sequence="76"/>
+
+    <record id="action_caja_chica" model="ir.actions.act_window">
+        <field name="name">Caja Chica</field>
+        <field name="res_model">hr_cardic.caja_chica</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem id="menu_caja_chica"
+              name="Caja Chica"
+              parent="menu_hr_routes"
+              action="action_caja_chica"
+              sequence="80"/>
+
+    <report
+        id="action_report_ruta"
+        model="hr_cardic.ruta"
+        string="Reporte de Ruta"
+        report_type="qweb-pdf"
+        name="hr_cardic.report_ruta_document"
+        file="hr_cardic.report_ruta_document"
+        print_report_name="'Reporte de Ruta - %s' % (object.name)"
+    />
   </data>
 </odoo>
