@@ -234,6 +234,10 @@
                 <field name="dias_trabajados" readonly="1"/>
                 <field name="anios_trabajados" readonly="1"/>
                 <field name="salario_diario" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
     <!-- Vistas de Rutas -->
     <record id="view_ruta_tree" model="ir.ui.view">
         <field name="name">hr_cardic.ruta.tree</field>
