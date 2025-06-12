@@ -1,25 +1,24 @@
-# -*- coding: utf-8 -*-
 {
-    'name': 'Gestión de Devoluciones',
-    'version': '1.0',
-    'category': 'Inventory/Inventory',
-    'summary': 'Gestión de devoluciones de producto con clasificación',
+    'name': "Gestión de Devoluciones",
+    'summary': "Módulo para gestionar el proceso de devoluciones de clientes.",
     'description': """
-        Este módulo extiende la funcionalidad de Odoo para gestionar devoluciones de producto
-        con un proceso de clasificación especializado.
+        Este módulo añade nuevas ubicaciones y tipos de operación para manejar
+        las devoluciones de productos y su posterior inspección o proceso de garantía.
     """,
-    'author': 'Tu Nombre',
-    'website': 'https://www.tuempresa.com',
-    'depends': ['stock'],
+    'author': "Tu Nombre",
+    'website': "https://www.tuweb.com",
+    'category': 'Inventory/Inventory',
+    'version': '17.0.1.0.0',
+
+    # --- LÍNEA CLAVE ---
+    # Asegúrate de que 'stock' esté en la lista de dependencias.
+    'depends': ['base', 'stock'],
+
     'data': [
         'security/ir.model.access.csv',
         'data/stock_data.xml',
-        'data/cron.xml',
         'views/stock_picking_views.xml',
-        'views/menu_views.xml',
-        'views/res_config_settings_views.xml',
     ],
     'installable': True,
     'application': True,
-    'auto_install': False,
 }

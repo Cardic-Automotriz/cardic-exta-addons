@@ -1,78 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_picking_form_inherit_return_destination" model="ir.ui.view">
-        <field name="name">stock.picking.form.inherit.destination</field>
+    <record id="stock_picking_view_form_inherit_returns" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.returns</field>
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
-            <!-- Añadimos el botón solo para nuestro tipo de operación específico -->
             <xpath expr="//header" position="inside">
+                <!--
+                    CORRECCIÓN:
+                    La sintaxis del dominio para 'invisible' ha sido corregida.
+                    La lógica es: invisible si ('is_return_picking_type' es falso) O ('state' es 'done' o 'cancel').
+                    El operador '|' (OR) debe ir al principio.
+                -->
                 <button name="action_apply_return_destination"
                         string="Aplicar Destino"
                         type="object"
                         class="oe_highlight"
-                        invisible="not is_return_classification"/>
+                        invisible="['|', ('is_return_picking_type', '=', False), ('state', 'in', ('done', 'cancel'))]"
+                        help="Cambia la ubicación de destino de los productos según la acción seleccionada."/>
             </xpath>
-
-            <!--
-                Añadimos el campo de selección cerca del tipo de operación.
-                Solo será visible para nuestro tipo de operación de clasificación.
-            -->
             <xpath expr="//field[@name='picking_type_id']" position="after">
-                <field name="is_return_classification" invisible="1"/>
-                <field name="return_source" invisible="not is_return_classification"/>
-                <field name="market_reference" invisible="not is_return_classification or return_source != 'api'"/>
-                <field name="market_return_date" invisible="not is_return_classification or return_source != 'api'"/>
-                <field name="return_reason" invisible="not is_return_classification"/>
-                <field name="return_destination"
-                       invisible="not is_return_classification"
-                       required="is_return_classification"/>
-            </xpath>
-        </field>
-    </record>
-
-    <!-- Vista de árbol personalizada para la clasificación de devoluciones -->
-    <record id="view_picking_tree_returns_classification" model="ir.ui.view">
-        <field name="name">stock.picking.tree.returns.classification</field>
-        <field name="model">stock.picking</field>
-        <field name="priority">99</field>
-        <field name="arch" type="xml">
-            <tree string="Clasificación de Devoluciones">
-                <field name="name"/>
-                <field name="partner_id"/>
-                <field name="date"/>
-                <field name="return_source"/>
-                <field name="market_return_date"/>
-                <field name="return_reason"/>
-                <field name="return_destination"/>
-                <field name="state"/>
-            </tree>
-        </field>
-    </record>
-
-    <!-- Vista de búsqueda personalizada para clasificación de devoluciones -->
-    <record id="view_picking_search_returns_classification" model="ir.ui.view">
-        <field name="name">stock.picking.search.returns.classification</field>
-        <field name="model">stock.picking</field>
-        <field name="inherit_id" ref="stock.view_picking_search"/>
-        <field name="mode">primary</field>
-        <field name="arch" type="xml">
-            <xpath expr="//filter[@name='draft']" position="before">
-                <filter string="Entrada Manual" name="manual_source" domain="[('return_source', '=', 'manual')]"/>
-                <filter string="Importado de API" name="api_source" domain="[('return_source', '=', 'api')]"/>
-                <separator/>
-                <filter string="Producto Dañado" name="damaged" domain="[('return_reason', '=', 'damaged')]"/>
-                <filter string="Producto Incorrecto" name="wrong_item" domain="[('return_reason', '=', 'wrong_item')]"/>
-                <filter string="Problema de Calidad" name="quality_issue" domain="[('return_reason', '=', 'quality_issue')]"/>
-                <filter string="Cliente Insatisfecho" name="customer_dissatisfaction" domain="[('return_reason', '=', 'customer_dissatisfaction')]"/>
-                <filter string="Otro Motivo" name="other_reason" domain="[('return_reason', '=', 'other')]"/>
-                <separator/>
-            </xpath>
-            <xpath expr="//group" position="inside">
-                <filter string="Fuente de Devolución" name="group_by_source" context="{'group_by': 'return_source'}"/>
-                <filter string="Motivo de Devolución" name="group_by_reason" context="{'group_by': 'return_reason'}"/>
-                <filter string="Destino de Devolución" name="group_by_destination" context="{'group_by': 'return_destination'}"/>
-                <filter string="Fecha de Devolución (Mercado)" name="group_by_market_date" context="{'group_by': 'market_return_date:day'}"/>
+                <field name="is_return_picking_type" invisible="1"/>
+                <!--
+                    CORRECCIÓN:
+                    Se eliminó la llave '}' extra que causaba el error 'unmatched }'.
+                -->
+                <div class="o_group_row" invisible="[('is_return_picking_type', '=', False)]">
+                    <group>
+                        <field name="return_destination" widget="radio" nolabel="0"/>
+                        <field name="return_reason"/>
+                    </group>
+                </div>
             </xpath>
         </field>
     </record>
