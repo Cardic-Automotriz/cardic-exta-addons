@@ -14,8 +14,16 @@ odoo-custom-addons/
 
 ## Módulos Disponibles
 
-### profile_work
+### rh_cardic
 Módulo para la gestión de vacantes de recursos humanos.
+
+### stock_cardic
+Módulo para la gestión de rutas personalizadas de almacen. Manejo de multi empresa  
+y gestión de devoluciones, surtiendo el stock de las plataformas digitales y el punto de venta
+
+### ml_connector
+Módulo de conexión con Mercado Libre México, mediante el uso de su API y optimización de  
+algoritmos se sincronizan y actualizan las 2.6M de publicaciones de las 5 tiendas.
 
 #### Características
 - Registro y seguimiento de vacantes
