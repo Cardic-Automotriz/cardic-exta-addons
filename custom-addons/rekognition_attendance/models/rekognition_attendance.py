@@ -67,4 +67,66 @@ class HrEmployee(models.Model):
                 error_message = e.response['Error']['Message']
                 raise ValueError(f"Error de AWS ({error_code}): {error_message}")
             except Exception as e:
-                raise ValueError(f"Error al registrar el rostro: {str(e)}") 
+                raise ValueError(f"Error al registrar el rostro: {str(e)}")
+
+    def open_chekador_facial_wizard(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Checador Facial',
+            'res_model': 'rekognition.attendance.chekador',
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+class RekognitionAttendanceChekador(models.TransientModel):
+    _name = 'rekognition.attendance.chekador'
+    _description = 'Checador de Asistencia con Reconocimiento Facial'
+
+    image = fields.Binary(string='Foto tomada', attachment=True)
+    result_message = fields.Char(string='Resultado', readonly=True)
+
+    def action_check_attendance(self):
+        self.ensure_one()
+        if not self.image:
+            self.result_message = "No se ha tomado ninguna foto."
+            return self._notification("Error", self.result_message)
+
+        try:
+            # Decodifica la imagen base64
+            image_bytes = base64.b64decode(self.image)
+            rekognition = self.env['hr.employee']._get_rekognition_client()
+            response = rekognition.search_faces_by_image(
+                CollectionId='empleados_cardic',
+                Image={'Bytes': image_bytes},
+                MaxFaces=1,
+                FaceMatchThreshold=90
+            )
+            if response['FaceMatches']:
+                face_id = response['FaceMatches'][0]['Face']['FaceId']
+                employee = self.env['hr.employee'].search([('face_id', '=', face_id)], limit=1)
+                if employee:
+                    # Marcar asistencia
+                    self.env['hr.attendance'].create({
+                        'employee_id': employee.id,
+                        'check_in': fields.Datetime.now(),
+                    })
+                    self.result_message = f"Asistencia registrada para {employee.name}."
+                else:
+                    self.result_message = "Rostro reconocido, pero no se encontró el empleado."
+            else:
+                self.result_message = "No se encontró coincidencia de rostro."
+        except Exception as e:
+            self.result_message = f"Error: {str(e)}"
+
+        return self._notification("Resultado", self.result_message)
+
+    def _notification(self, title, message):
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': title,
+                'message': message,
+                'sticky': False,
+            }
+        } 

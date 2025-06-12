@@ -570,6 +570,12 @@
               action="action_ruta"
               sequence="1"/>
 
+    <menuitem id="menu_chekador_facial_prueba"
+              name="Checador Facial"
+              parent="rhh_menu_root"
+              action="rekognition_attendance.action_attendance_chekador"
+              sequence="76"/>
+
     <record id="action_caja_chica" model="ir.actions.act_window">
         <field name="name">Caja Chica</field>
         <field name="res_model">hr_cardic.caja_chica</field>
