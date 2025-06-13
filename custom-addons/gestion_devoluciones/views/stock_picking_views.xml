@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_view_form_inherit_returns" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.returns</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <!--
+                    CORRECCIÓN:
+                    La sintaxis del dominio para 'invisible' ha sido corregida.
+                    La lógica es: invisible si ('is_return_picking_type' es falso) O ('state' es 'done' o 'cancel').
+                    El operador '|' (OR) debe ir al principio.
+                -->
+                <button name="action_apply_return_destination"
+                        string="Aplicar Destino"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="['|', ('is_return_picking_type', '=', False), ('state', 'in', ('done', 'cancel'))]"
+                        help="Cambia la ubicación de destino de los productos según la acción seleccionada."/>
+            </xpath>
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <field name="is_return_picking_type" invisible="1"/>
+                <!--
+                    CORRECCIÓN:
+                    Se eliminó la llave '}' extra que causaba el error 'unmatched }'.
+                -->
+                <div class="o_group_row" invisible="[('is_return_picking_type', '=', False)]">
+                    <group>
+                        <field name="return_destination" widget="radio" nolabel="0"/>
+                        <field name="return_reason"/>
+                    </group>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
