@@ -14,8 +14,6 @@
         'hr_contract',
         'hr_attendance',
         'hr_holidays',
-        'project',
-        'account',
         'analytic'
     ],
     'data': [
