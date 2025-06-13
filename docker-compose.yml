@@ -13,7 +13,7 @@ services:
       - odoo-net
 
   odoo:
-    image: odoo:17
+    build: .
     container_name: odoo17_app
     depends_on:
       - db
@@ -23,15 +23,20 @@ services:
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
-#    command: -- --init base --database odoo --without-demo all
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    command: odoo -i base -d odoo --update rekognition_attendance
     volumes:
       - ./custom-addons:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      - odoo-web-data:/var/lib/odoo/.local/share/Odoo
     restart: unless-stopped
     networks:
       - odoo-net
+
 volumes:
   odoo-db-data:
+  odoo-web-data:
 
 networks:
   odoo-net:
