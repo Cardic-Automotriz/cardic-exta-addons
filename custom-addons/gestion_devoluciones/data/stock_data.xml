@@ -22,7 +22,7 @@
             <field name="name">Devoluciones de Clientes</field>
             <field name="code">incoming</field>
             <field name="warehouse_id" ref="stock.warehouse0"/>
-            <field name="sequence_code">stock.picking.type.rtv</field> <!-- ¡AQUÍ ESTÁ LA SOLUCIÓN! -->
+            <field name="sequence_code">DEV</field> <!-- ¡AQUÍ ESTÁ LA SOLUCIÓN! -->
             <field name="default_location_src_id" ref="stock.stock_location_customers"/>
             <field name="default_location_dest_id" ref="gestion_devoluciones.stock_location_returns_main"/>
             <field name="return_picking_type_id" ref="stock.picking_type_out"/>
