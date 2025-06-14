@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_rekognition_attendance_chekador,rekognition.attendance.chekador,model_rekognition_attendance_chekador,base.group_user,1,1,1,0
-access_hr_employee_rekognition_attendance,hr.employee.rekognition_attendance,model_hr_employee,base.group_user,1,1,1,0 
+access_hr_employee_rekognition_attendance,hr.employee access for rekognition,model_hr_employee,base.group_user,1,1,1,0
+

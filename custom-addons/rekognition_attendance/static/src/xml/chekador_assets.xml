@@ -1,7 +1,17 @@
-<odoo>
-    <template id="assets_backend" inherit_id="web.assets_backend" name="rekognition_attendance assets">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/rekognition_attendance/static/src/js/chekador_camera.js"/>
-        </xpath>
-    </template>
-</odoo> 
+<templates xml:space="preserve">
+    <t t-name="rekognition_attendance.CameraComponent" owl="1">
+        <div class="o_camera_component">
+            <div t-ref="camera_block" class="text-center">
+                <video t-ref="video" width="320" height="240" autoplay="autoplay" class="mb-2"/>
+                <br/>
+                <button type="button" t-on-click="takePhoto" class="btn btn-primary">Tomar Foto</button>
+                <canvas t-ref="canvas" width="320" height="240" style="display:none;"/>
+            </div>
+            <div t-ref="image_block" class="text-center" style="display:none;">
+                <img t-ref="photo" width="320" height="240" class="mb-2"/>
+                <br/>
+                <button type="button" t-on-click="retakePhoto" class="btn btn-secondary">Tomar otra foto</button>
+            </div>
+        </div>
+    </t>
+</templates> 

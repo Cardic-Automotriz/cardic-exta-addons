@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo import models, fields, api
 import boto3
 import os
 import base64
@@ -89,10 +90,18 @@ class RekognitionAttendanceChekador(models.TransientModel):
         self.ensure_one()
         if not self.image:
             self.result_message = "No se ha tomado ninguna foto."
-            return self._notification("Error", self.result_message)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Error',
+                    'type': 'danger',
+                    'message': self.result_message,
+                    'sticky': False,
+                }
+            }
 
         try:
-            # Decodifica la imagen base64
             image_bytes = base64.b64decode(self.image)
             rekognition = self.env['hr.employee']._get_rekognition_client()
             response = rekognition.search_faces_by_image(
@@ -105,7 +114,6 @@ class RekognitionAttendanceChekador(models.TransientModel):
                 face_id = response['FaceMatches'][0]['Face']['FaceId']
                 employee = self.env['hr.employee'].search([('face_id', '=', face_id)], limit=1)
                 if employee:
-                    # Marcar asistencia
                     self.env['hr.attendance'].create({
                         'employee_id': employee.id,
                         'check_in': fields.Datetime.now(),
@@ -118,15 +126,42 @@ class RekognitionAttendanceChekador(models.TransientModel):
         except Exception as e:
             self.result_message = f"Error: {str(e)}"
 
-        return self._notification("Resultado", self.result_message)
-
-    def _notification(self, title, message):
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': title,
-                'message': message,
+                'title': 'Resultado',
+                'type': 'info',
+                'message': self.result_message,
                 'sticky': False,
             }
-        } 
+        }
+
+    def action_validate_face(self):
+        self.ensure_one()
+        if not self.image:
+            self.result_message = "No se ha tomado ninguna foto."
+            return {'message': self.result_message}
+
+        try:
+            image_bytes = base64.b64decode(self.image)
+            rekognition = self.env['hr.employee']._get_rekognition_client()
+            response = rekognition.search_faces_by_image(
+                CollectionId='empleados_cardic',
+                Image={'Bytes': image_bytes},
+                MaxFaces=1,
+                FaceMatchThreshold=90
+            )
+            if response['FaceMatches']:
+                face_id = response['FaceMatches'][0]['Face']['FaceId']
+                employee = self.env['hr.employee'].search([('face_id', '=', face_id)], limit=1)
+                if employee:
+                    self.result_message = f"Rostro validado: {employee.name}."
+                else:
+                    self.result_message = "Rostro reconocido, pero no se encontró el empleado."
+            else:
+                self.result_message = "No se encontró coincidencia de rostro."
+        except Exception as e:
+            self.result_message = f"Error: {str(e)}"
+        return {'message': self.result_message}
+       

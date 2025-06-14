@@ -6,12 +6,15 @@
     'category': 'Human Resources',
     'depends': ['base', 'web', 'hr', 'hr_attendance'],
     'data': [
+        'security/ir.model.access.csv',
         'views/rekognition_attendance_views.xml',
-        'views/assets.xml',
     ],
-    'qweb': [
-        'static/src/xml/chekador_assets.xml',
-    ],
+    'assets': {
+        'web.assets_backend': [
+            'rekognition_attendance/static/src/js/camera.js',
+            'rekognition_attendance/static/src/xml/chekador_assets.xml',
+        ],
+    },
     'installable': True,
     'application': True,
-} 
+}
