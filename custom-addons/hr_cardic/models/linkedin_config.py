@@ -25,7 +25,7 @@ class LinkedInConfig(models.Model):
             f"?response_type=code"
             f"&client_id={self.client_id}"
             f"&redirect_uri={self.redirect_uri}"
-            f"&scope=w_member_social%20openid%20profile%20email"
+            f"&scope=w_member_social"
         )
 
     def _get_access_token(self):
