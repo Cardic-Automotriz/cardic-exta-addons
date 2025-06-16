@@ -1,36 +1,43 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta, date
+import requests
+import json
 
 class SolicitudVacante(models.Model):
     _name = 'hr_cardic.solicitud'
     _description = 'Solicitud de Vacante'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    active = fields.Boolean(default=True, string="Activo")
 
-    name = fields.Char(string="Nombre de la Vacante", required=True)
-    description = fields.Text(string="Descripción")
-    jefe_solicitante = fields.Many2one('hr.employee', string="Jefe solicitante", required=True)
+    name = fields.Char(string="Nombre de la Vacante", required=True, tracking=True)
+    description = fields.Text(string="Descripción", tracking=True)
+    jefe_solicitante = fields.Many2one('hr.employee', string="Jefe solicitante", required=True, tracking=True)
     nivel_estudios = fields.Selection([
         ('secundaria', 'Secundaria'),
         ('preparatoria', 'Preparatoria'),
         ('licenciatura', 'Licenciatura'),
         ('maestria', 'Maestría'),
         ('doctorado', 'Doctorado'),
-    ], string="Nivel de estudios", default='licenciatura')
+    ], string="Nivel de estudios", default='licenciatura', tracking=True)
     horario = fields.Selection([
         ('matutino', 'Matutino'),
         ('vespertino', 'Vespertino'),
         ('nocturno', 'Nocturno'),
         ('tiempo_completo', 'Tiempo completo'),
-    ], string="Horario", default='tiempo_completo')
-    salario = fields.Monetary(string="Salario propuesto", default=10000.0, currency_field='currency_id')
-    fecha_solicitud = fields.Datetime(string="Fecha de solicitud", default=fields.Datetime.now)
+    ], string="Horario", default='tiempo_completo', tracking=True)
+    salario = fields.Monetary(string="Salario propuesto", default=10000.0, currency_field='currency_id', tracking=True)
+    fecha_solicitud = fields.Datetime(string="Fecha de solicitud", default=fields.Datetime.now, tracking=True)
     estado = fields.Selection([
         ('borrador', 'Borrador'),
         ('revision', 'En revisión'),
         ('publicada', 'Publicada'),
         ('cerrada', 'Cerrada'),
-    ], string="Estado", default='borrador')
+    ], string="Estado", default='borrador', tracking=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id.id)
+    linkedin_job_id = fields.Char(string='ID de Vacante LinkedIn', readonly=True)
+    linkedin_url = fields.Char(string='URL de Vacante LinkedIn', readonly=True)
+    publicar_linkedin = fields.Boolean(string='Publicar en LinkedIn', default=True, tracking=True)
 
     show_aprobar_y_publicar = fields.Boolean(compute="_compute_show_aprobar_y_publicar", store=False)
 
@@ -39,20 +46,64 @@ class SolicitudVacante(models.Model):
         for rec in self:
             rec.show_aprobar_y_publicar = rec.estado == 'revision'
 
+    def _prepare_job_data(self):
+        """Preparar datos de la vacante para LinkedIn"""
+        self.ensure_one()
+        
+        # Construir la descripción completa
+        descripcion = self.description or ''
+        descripcion += f"\n\nRequisitos:"
+        descripcion += f"\n• Nivel de estudios: {dict(self._fields['nivel_estudios'].selection).get(self.nivel_estudios, '')}"
+        descripcion += f"\n• Horario: {dict(self._fields['horario'].selection).get(self.horario, '')}"
+        descripcion += f"\n• Salario: {self.salario} {self.currency_id.name}"
+        
+        # URL de aplicación (puedes personalizar esto según tu configuración)
+        application_url = f"{self.env['ir.config_parameter'].sudo().get_param('web.base.url')}/jobs/apply/{self.id}"
+        
+        return {
+            'name': self.name,
+            'description': descripcion,
+            'application_url': application_url
+        }
+
     def action_aprobar_y_publicar(self):
-        Job = self.env['hr.job']
         for solicitud in self:
-            descripcion = solicitud.description or ''
-            descripcion += f"\nNivel de estudios: {dict(self._fields['nivel_estudios'].selection).get(solicitud.nivel_estudios, '')}"
-            descripcion += f"\nHorario: {dict(self._fields['horario'].selection).get(solicitud.horario, '')}"
-            descripcion += f"\nSalario propuesto: {solicitud.salario} {solicitud.currency_id.name}"
+            # Crear la vacante en Odoo
+            Job = self.env['hr.job']
             job_vals = {
                 'name': solicitud.name,
-                'description': descripcion,
-                'requirements': descripcion,
+                'description': solicitud.description,
+                'requirements': solicitud.description,
             }
-            Job.create(job_vals)
-            solicitud.estado = 'publicada'
+            job = Job.create(job_vals)
+            
+            # Publicar en LinkedIn si está habilitado
+            if solicitud.publicar_linkedin:
+                try:
+                    linkedin_config = self.env['hr_cardic.linkedin_config'].get_active_config()
+                    job_data = solicitud._prepare_job_data()
+                    response = linkedin_config.publish_job(job_data)
+                    
+                    # Actualizar la solicitud con la información de LinkedIn
+                    solicitud.write({
+                        'linkedin_job_id': response.get('id'),
+                        'linkedin_url': response.get('url'),
+                        'estado': 'publicada'
+                    })
+                    
+                    # Notificar al solicitante
+                    solicitud.message_post(
+                        body=f"La vacante ha sido publicada en LinkedIn. URL: {response.get('url')}",
+                        message_type='comment'
+                    )
+                except Exception as e:
+                    solicitud.message_post(
+                        body=f"Error al publicar en LinkedIn: {str(e)}",
+                        message_type='comment'
+                    )
+                    raise ValidationError(f"Error al publicar en LinkedIn: {str(e)}")
+            else:
+                solicitud.estado = 'publicada'
 
 class Ruta(models.Model):
     _name = 'hr_cardic.ruta'
@@ -808,51 +859,6 @@ class Liquidacion(models.Model):
             else:
                 rec.salario_proporcional = 0.0
 
-    @api.depends('salario_proporcional', 'proporcional_aguinaldo', 'prima_vacacional', 'bono', 'proporcional_vacaciones_sin_2022')
-    def _compute_impuestos_proporcionales(self):
-        TABLA_ISR = [
-            {"lim_inf": 0.01, "lim_sup": 368.10, "cuota_fija": 0.00, "porcentaje": 1.92},
-            {"lim_inf": 368.11, "lim_sup": 3124.35, "cuota_fija": 7.05, "porcentaje": 6.40},
-            {"lim_inf": 3124.36, "lim_sup": 5490.75, "cuota_fija": 183.45, "porcentaje": 10.88},
-            {"lim_inf": 5490.76, "lim_sup": 6382.80, "cuota_fija": 441.00, "porcentaje": 16.00},
-            {"lim_inf": 6382.81, "lim_sup": 7641.90, "cuota_fija": 583.65, "porcentaje": 17.92},
-            {"lim_inf": 7641.91, "lim_sup": 15412.80, "cuota_fija": 809.25, "porcentaje": 21.36},
-            {"lim_inf": 15412.81, "lim_sup": 24292.65, "cuota_fija": 2469.15, "porcentaje": 23.52},
-            {"lim_inf": 24292.66, "lim_sup": 46378.50, "cuota_fija": 4557.75, "porcentaje": 30.00},
-            {"lim_inf": 46378.51, "lim_sup": 61838.10, "cuota_fija": 11183.40, "porcentaje": 32.00},
-            {"lim_inf": 61838.11, "lim_sup": 185514.31, "cuota_fija": 16130.55, "porcentaje": 34.00},
-            {"lim_inf": 185514.31, "lim_sup": float('inf'), "cuota_fija": 58180.35, "porcentaje": 35.00},
-        ]
-        for rec in self:
-            # Exentos
-            rec.exento_aguinaldo = round(30 * 113.14, 2)
-            rec.exento_prima_vacacional = round(15 * 113.14, 2)
-            rec.exento_bono = round(5 * 113.14, 2)
-            # Gravámenes
-            rec.gravamen_aguinaldo = round(rec.proporcional_aguinaldo - rec.exento_aguinaldo, 2) if (rec.proporcional_aguinaldo or 0) > rec.exento_aguinaldo else 0.0
-            rec.gravamen_prima_vacacional = round(rec.prima_vacacional - rec.exento_prima_vacacional, 2) if (rec.prima_vacacional or 0) > rec.exento_prima_vacacional else 0.0
-            rec.gravamen_bono = round(rec.bono - rec.exento_bono, 2) if (rec.bono or 0) > rec.exento_bono else 0.0
-            # Total de gravámenes
-            rec.total_gravamenes = round((rec.salario_proporcional or 0) + (rec.proporcional_vacaciones_sin_2022 or 0) + rec.gravamen_aguinaldo + rec.gravamen_prima_vacacional + rec.gravamen_bono, 2)
-            # Buscar rango ISR
-            fila = next((f for f in TABLA_ISR if f["lim_inf"] <= rec.total_gravamenes <= f["lim_sup"]), None)
-            if fila:
-                rec.limite_inferior = fila["lim_inf"]
-                rec.limite_superior = fila["lim_sup"]
-                rec.cuota_fija = fila["cuota_fija"]
-                rec.porcentaje_excedente = fila["porcentaje"]
-                rec.calculo_1 = round(rec.total_gravamenes - rec.limite_inferior, 2)
-                rec.calculo_2 = round(rec.calculo_1 * (rec.porcentaje_excedente / 100), 2)
-                rec.gravamen_proporcionales = round(rec.calculo_2 + rec.cuota_fija, 2)
-            else:
-                rec.limite_inferior = 0.0
-                rec.limite_superior = 0.0
-                rec.cuota_fija = 0.0
-                rec.porcentaje_excedente = 0.0
-                rec.calculo_1 = 0.0
-                rec.calculo_2 = 0.0
-                rec.gravamen_proporcionales = 0.0
-
     def action_descargar_liquidacion(self):
         return {
             'type': 'ir.actions.report',
@@ -900,6 +906,7 @@ class Liquidacion(models.Model):
             rec.cv = round(0.01125 * (rec.sdi or 0) * (rec.dias_trabajados_quincena or 0), 2)
             # Total IMSS
             rec.total_imss = round((rec.excedente or 0) + (rec.gastos_medicos or 0) + (rec.en_dinero or 0) + (rec.invalidez_vida or 0) + (rec.cv or 0), 2)
+
 class HrExpense(models.Model):
     _inherit = 'hr.expense'
 

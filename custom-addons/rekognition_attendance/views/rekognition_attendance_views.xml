@@ -50,7 +50,6 @@
                         <h1>Checador Facial</h1>
                     </div>
                     <group>
-                        <field name="id" invisible="1" class="record_id_field"/>
                         <div id="camera_component"/>
                         <field name="image" invisible="1"/>
                         <field name="result_message" readonly="1"/>

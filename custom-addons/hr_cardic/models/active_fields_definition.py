@@ -1,0 +1,1 @@
+active = fields.Boolean(default=True, string="Activo")
