@@ -101,9 +101,10 @@ odoo.define('rekognition_attendance.camera_mount', [], function (require) {
     const CameraComponent = require('rekognition_attendance.camera').CameraComponent;
 
     function getRecordId() {
-        const input = document.querySelector('.record_id_field input');
-        if (input) {
-            return parseInt(input.value, 10);
+        // Obtener el res_id del formulario Odoo
+        const formView = document.querySelector('.o_form_view');
+        if (formView && formView.dataset && formView.dataset.resId) {
+            return parseInt(formView.dataset.resId, 10);
         }
         return null;
     }
