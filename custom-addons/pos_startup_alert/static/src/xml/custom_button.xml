@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- Define el template para nuestro nuevo componente de botón -->
+    <t t-name="pos_startup_alert.ConsoleLogButton" owl="1">
+        <div class="control-button" t-on-click="onClick">
+            <i class="fa fa-bug"/>
+            <span>Test Console</span>
+        </div>
+    </t>
+
+</templates>
