@@ -11,3 +11,7 @@ access_hr_cardic_ruta,hr.cardic.ruta,model_hr_cardic_ruta,base.group_user,1,1,1,
 access_hr_cardic_ruta_manager,hr.cardic.ruta.manager,model_hr_cardic_ruta,hr.group_hr_manager,1,1,1,1
 access_hr_cardic_gasto_ruta,hr.cardic.gasto.ruta,model_hr_cardic_gasto_ruta,base.group_user,1,1,1,1
 access_hr_cardic_gasto_ruta_manager,hr.cardic.gasto.ruta.manager,model_hr_cardic_gasto_ruta,hr.group_hr_manager,1,1,1,1
+access_hr_cardic_solicitud_user,hr.cardic.solicitud.user,model_hr_cardic_solicitud,base.group_user,1,1,1,0
+access_hr_cardic_solicitud_manager,hr.cardic.solicitud.manager,model_hr_cardic_solicitud,hr.group_hr_manager,1,1,1,1
+access_hr_cardic_linkedin_config_user,hr.cardic.linkedin.config.user,model_hr_cardic_linkedin_config,base.group_user,1,0,0,0
+access_hr_cardic_linkedin_config_manager,hr.cardic.linkedin.config.manager,model_hr_cardic_linkedin_config,hr.group_hr_manager,1,1,1,1

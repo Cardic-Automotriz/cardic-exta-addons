@@ -1,60 +1,125 @@
-odoo.define('rekognition_attendance.camera', function (require) {
+odoo.define('rekognition_attendance.camera', [], function (require) {
     'use strict';
 
-    var AbstractField = require('web.AbstractField');
-    var core = require('web.core');
-    var registry = require('web.field_registry');
-    var FormController = require('web.FormController');
+    const { Component, useRef, onMounted, onWillUnmount } = require("@odoo/owl");
+    const { useService } = require("@web/core/utils/hooks");
+    const { _t } = require("@web/core/l10n/translation");
 
-    var QWeb = core.qweb;
-    var _t = core._t;
+    class CameraComponent extends Component {
+        setup() {
+            this.videoRef = useRef('video');
+            this.canvasRef = useRef('canvas');
+            this.photoRef = useRef('photo');
+            this.cameraBlockRef = useRef('camera_block');
+            this.imageBlockRef = useRef('image_block');
+            
+            this.orm = useService("orm");
+            this.notification = useService("notification");
+            this.action = useService("action");
+            
+            this.stream = null;
+            
+            onMounted(() => this.startCamera());
+            onWillUnmount(() => this.stopCamera());
+        }
 
-    FormController.include({
-        _onButtonClicked: function (ev) {
-            if (ev.data.attrs.name === 'snap_photo') {
-                this._takePhoto();
-                return;
+        async startCamera() {
+            try {
+                this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                this.videoRef.el.srcObject = this.stream;
+                await this.videoRef.el.play();
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                this.notification.add(_t("Error"), {
+                    type: "danger",
+                    message: _t("Could not access camera: ") + err.message,
+                });
             }
-            return this._super.apply(this, arguments);
-        },
+        }
 
-        _takePhoto: function () {
-            var video = document.getElementById('video');
-            var canvas = document.getElementById('canvas');
-            var photo = document.getElementById('photo_result');
-            var context = canvas.getContext('2d');
+        stopCamera() {
+            if (this.stream) {
+                this.stream.getTracks().forEach(track => track.stop());
+                this.stream = null;
+            }
+        }
 
-            // Dibuja la imagen del video en el canvas
+        async takePhoto() {
+            const video = this.videoRef.el;
+            const canvas = this.canvasRef.el;
+            const photo = this.photoRef.el;
+            const context = canvas.getContext('2d');
+
             context.drawImage(video, 0, 0, 320, 240);
 
-            // Convierte el canvas a base64
-            var data = canvas.toDataURL('image/jpeg');
-            photo.setAttribute('src', data);
+            const data = canvas.toDataURL('image/jpeg').split(',')[1];
 
-            // Muestra la foto tomada y oculta el video
-            document.getElementById('camera_block').style.display = 'none';
-            document.getElementById('image_block').style.display = 'block';
+            photo.src = 'data:image/jpeg;base64,' + data;
 
-            // Guarda la imagen en el campo binario
-            this.model.set('image', data);
-        },
+            this.cameraBlockRef.el.style.display = 'none';
+            this.imageBlockRef.el.style.display = 'block';
 
-        start: function () {
-            var self = this;
-            return this._super.apply(this, arguments).then(function () {
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(function (stream) {
-                            var video = document.getElementById('video');
-                            if (video) {
-                                video.srcObject = stream;
-                            }
-                        })
-                        .catch(function (err) {
-                            console.log("Error al acceder a la cámara: " + err);
-                        });
+            try {
+                await this.orm.write('rekognition.attendance.chekador', [this.props.recordId], {
+                    image: data
+                });
+
+                const result = await this.orm.call(
+                    'rekognition.attendance.chekador',
+                    'action_check_attendance',
+                    [this.props.recordId]
+                );
+
+                if (result && result.type === 'ir.actions.client') {
+                    await this.action.doAction(result);
                 }
-            });
-        },
-    });
-}); 
+            } catch (error) {
+                this.notification.add(_t("Error"), {
+                    type: "danger",
+                    message: _t("Error processing image: ") + error.message,
+                });
+            }
+        }
+
+        retakePhoto() {
+            this.cameraBlockRef.el.style.display = 'block';
+            this.imageBlockRef.el.style.display = 'none';
+        }
+    }
+
+    CameraComponent.template = 'rekognition_attendance.CameraComponent';
+    CameraComponent.props = {
+        recordId: { type: Number },
+    };
+
+    return CameraComponent;
+});
+
+odoo.define('rekognition_attendance.camera_mount', [], function (require) {
+    'use strict';
+    const { mount } = require('@odoo/owl');
+    const CameraComponent = require('rekognition_attendance.camera').CameraComponent;
+
+    function getRecordId() {
+        // Obtener el res_id del formulario Odoo
+        const formView = document.querySelector('.o_form_view');
+        if (formView && formView.dataset && formView.dataset.resId) {
+            return parseInt(formView.dataset.resId, 10);
+        }
+        return null;
+    }
+
+    function mountCamera() {
+        const cameraDiv = document.getElementById('camera_component');
+        const recordId = getRecordId();
+        if (cameraDiv && recordId) {
+            mount(CameraComponent, { recordId: recordId }, { target: cameraDiv });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mountCamera);
+    } else {
+        mountCamera();
+    }
+});

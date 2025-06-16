@@ -50,25 +50,12 @@
                         <h1>Checador Facial</h1>
                     </div>
                     <group>
-                        <div id="camera_block" style="text-align:center;">
-                            <video id="video" width="320" height="240" autoplay="autoplay"></video>
-                            <br/>
-                            <button type="button" name="snap_photo" class="btn btn-primary" id="snap">Tomar Foto</button>
-                            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-                        </div>
-                        <div id="image_block" style="text-align:center; display:none;">
-                            <img id="photo_result" width="320" height="240"/>
-                            <br/>
-                            <field name="image" invisible="1"/>
-                            <field name="result_message" readonly="1"/>
-                        </div>
+                        <div id="camera_component"/>
+                        <field name="image" invisible="1"/>
+                        <field name="result_message" readonly="1"/>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_check_attendance" 
-                            type="object" 
-                            class="btn-primary" 
-                            string="Marcar Asistencia"/>
                     <button special="cancel" 
                             string="Cerrar" 
                             class="btn-secondary"/>
@@ -76,4 +63,4 @@
             </form>
         </field>
     </record>
-</odoo> 
+</odoo>
