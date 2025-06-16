@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_inherit_custom_fields" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.custom.fields</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='identification_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_rfc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_curp']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_mx_nss']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Nomina" name="nomina">
+                    <group>
+                        <field name="identification_id"/>
+                        <field name="l10n_mx_rfc"/>
+                        <field name="l10n_mx_curp"/>
+                        <field name="l10n_mx_nss"/>
+                    </group>
+                    <group string="Cálculos de Nómina">
+                        <field name="contract_id"/>
+                        <field name="contract_date_start" readonly="1"/>
+                        <field name="salario" readonly="1"/>
+                        <field name="salario_diario" readonly="1"/>
+                        <field name="fecha_corte" readonly="1"/>
+                        <field name="dias_trabajados" readonly="1"/>
+                        <field name="anios_trabajados" readonly="1"/>
+                        <field name="anios_cumplidos" readonly="1"/>
+                        <field name="vacaciones" readonly="1"/>
+                        <field name="sdi" readonly="1"/>
+                        <field name="faltas"/>
+                        <field name="sueldo" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo> 
